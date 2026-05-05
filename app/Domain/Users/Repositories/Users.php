@@ -174,6 +174,8 @@ class Users
                 'jobLevel',
                 'department',
                 'zp_user.modified',
+                'pwReset',
+                'pwResetExpiration',
             ])
             ->selectRaw("CASE WHEN firstname <> '' THEN firstname ELSE username END AS firstname")
             ->leftJoin('zp_clients', 'zp_clients.id', '=', 'zp_user.clientId')
@@ -371,6 +373,7 @@ class Users
             'password' => password_hash($values['password'], PASSWORD_DEFAULT),
             'source' => $values['source'] ?? '',
             'pwReset' => $values['pwReset'] ?? '',
+            'pwResetExpiration' => $values['pwResetExpiration'] ?? null,
             'status' => $values['status'] ?? '',
             'createdOn' => now(),
             'jobTitle' => $values['jobTitle'] ?? '',

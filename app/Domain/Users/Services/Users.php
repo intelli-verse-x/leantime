@@ -260,39 +260,113 @@ class Users
         $values['password'] = $tempPasswordVar;
         $values['status'] = 'i';
         $values['pwReset'] = $inviteCode;
+        $values['pwResetExpiration'] = now()->addDays(30)->format('Y-m-d H:i:s');
 
         $result = $this->userRepo->addUser($values);
 
         if ($result === false) {
+            Log::warning('Failed to create invited user', ['email' => $values['user'] ?? '']);
+
             return false;
         }
 
-        $this->sendUserInvite($inviteCode, $values['user']);
+        Log::info('User invite created', ['userId' => $result, 'email' => $values['user'] ?? '']);
+
+        $emailSent = $this->sendUserInvite($inviteCode, $values['user']);
+
+        if (! $emailSent) {
+            Log::warning('Invite email could not be sent for new user', ['userId' => $result, 'email' => $values['user'] ?? '']);
+        }
 
         return $result;
     }
 
-    public function sendUserInvite(string $inviteCode, string $user)
+    /**
+     * sendUserInvite - sends an invite email for the given invite code
+     *
+     * @param  string  $inviteCode  The UUID invite token
+     * @param  string  $user        The recipient email address
+     * @return bool True on success, false on failure
+     */
+    public function sendUserInvite(string $inviteCode, string $user): bool
     {
 
-        $mailer = app()->make(MailerCore::class);
-        $mailer->setContext('new_user');
+        try {
+            $mailer = app()->make(MailerCore::class);
+            $mailer->setContext('new_user');
 
-        $mailer->setSubject($this->language->__('email_notifications.new_user_subject'));
-        $actual_link = BASE_URL.'/auth/userInvite/'.$inviteCode;
+            $mailer->setSubject($this->language->__('email_notifications.new_user_subject'));
+            $actual_link = BASE_URL.'/auth/userInvite/'.$inviteCode;
 
-        $message = sprintf(
-            $this->language->__('email_notifications.user_invite_message'),
-            session('userdata.name') ?? 'Leantime',
-            $actual_link,
-            $user
-        );
+            $message = sprintf(
+                $this->language->__('email_notifications.user_invite_message'),
+                session('userdata.name') ?? 'Leantime',
+                $actual_link,
+                $user
+            );
 
-        $mailer->setHtml($message);
+            $mailer->setHtml($message);
 
-        $to = [$user];
+            $to = [$user];
 
-        $mailer->sendMail($to, session('userdata.name') ?? 'Leantime');
+            $mailer->sendMail($to, session('userdata.name') ?? 'Leantime');
+
+            Log::info('Invite email sent successfully', ['recipient' => $user]);
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Failed to send invite email', ['recipient' => $user, 'error' => $e->getMessage()]);
+
+            return false;
+        }
+    }
+
+    /**
+     * resendInvite - regenerates an invite token for an existing pending user and resends the email
+     *
+     * @param  int  $userId  The user ID to resend the invite to
+     * @return bool True on success, false on failure
+     *
+     * @api
+     */
+    public function resendInvite(int $userId): bool
+    {
+        $user = $this->getUser($userId);
+
+        if (! $user || strtolower((string) $user['status']) !== 'i') {
+            Log::warning('resendInvite called for non-invited user', ['userId' => $userId]);
+
+            return false;
+        }
+
+        $inviteCode = Uuid::uuid4()->toString();
+        $expiry = now()->addDays(30)->format('Y-m-d H:i:s');
+
+        $this->userRepo->patchUser($userId, [
+            'pwReset' => $inviteCode,
+            'pwResetExpiration' => $expiry,
+        ]);
+
+        Log::info('Invite resent', ['userId' => $userId, 'email' => $user['username']]);
+
+        return $this->sendUserInvite($inviteCode, $user['username']);
+    }
+
+    /**
+     * clearInviteToken - removes the invite token and expiry after a user accepts their invite
+     *
+     * @param  int  $userId  The user ID whose invite token should be cleared
+     *
+     * @api
+     */
+    public function clearInviteToken(int $userId): void
+    {
+        $this->userRepo->patchUser($userId, [
+            'pwReset' => null,
+            'pwResetExpiration' => null,
+        ]);
+
+        Log::info('Invite token cleared after acceptance', ['userId' => $userId]);
     }
 
     /**

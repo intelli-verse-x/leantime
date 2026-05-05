@@ -38,6 +38,7 @@ $roles = $tpl->get('roles');
                 <col class="con1">
                 <col class="con0">
                 <col class="con1">
+                <col class="con0">
             </colgroup>
             <thead>
                 <tr>
@@ -47,11 +48,15 @@ $roles = $tpl->get('roles');
                     <th class='head1'><?php echo $tpl->__('label.role'); ?></th>
                     <th class='head1'><?php echo $tpl->__('label.status'); ?></th>
                     <th class='head1'><?php echo $tpl->__('headlines.twoFA'); ?></th>
+                    <th class='head0 no-sort'><?php echo $tpl->__('label.inviteLink'); ?></th>
                     <th class='head0 no-sort'></th>
                 </tr>
             </thead>
             <tbody>
-            <?php foreach ($tpl->get('allUsers') as $row) { ?>
+            <?php foreach ($tpl->get('allUsers') as $row) {
+                $isInvited = strtolower((string) $row['status']) === 'i';
+                $isExpired = $isInvited && ! empty($row['pwResetExpiration']) && strtotime($row['pwResetExpiration']) < time();
+            ?>
                     <tr>
                         <td style="padding:6px 10px;">
                              <a href="<?= BASE_URL ?>/users/editUser/<?= $row['id']?>"><?= sprintf($tpl->__('text.full_name'), $tpl->escape($row['firstname']), $tpl->escape($row['lastname'])); ?></a>
@@ -59,19 +64,53 @@ $roles = $tpl->get('roles');
                         <td><a href="<?= BASE_URL ?>/users/editUser/<?= $row['id']?>"><?= $tpl->escape($row['username']); ?></a></td>
                         <td><?= $tpl->escape($row['clientName']); ?></td>
                         <td><?= $tpl->__('label.roles.'.$roles[$row['role']]); ?></td>
-                        <td><?php if (strtolower($row['status']) == 'a') {
-                            echo $tpl->__('label.active');
-                        } elseif (strtolower($row['status']) == 'i') {
-                            echo $tpl->__('label.invited');
-                        } else {
-                            echo $tpl->__('label.deactivated');
-                        } ?></td>
+                        <td>
+                            <?php if (strtolower((string) $row['status']) === 'a') {
+                                echo $tpl->__('label.active');
+                            } elseif ($isExpired) {
+                                echo '<span class="tw-text-red-500"><i class="fa fa-clock"></i> '.$tpl->__('label.invited').' ('.$tpl->__('label.expired').')</span>';
+                            } elseif ($isInvited) {
+                                echo '<span class="tw-text-yellow-600"><i class="fa fa-envelope"></i> '.$tpl->__('label.invited').'</span>';
+                            } else {
+                                echo $tpl->__('label.deactivated');
+                            } ?>
+                        </td>
                         <td><?php if ($row['twoFAEnabled']) {
                             echo $tpl->__('label.yes');
                         } else {
                             echo $tpl->__('label.no');
                         } ?></td>
-                        <td><a href="<?= BASE_URL ?>/users/delUser/<?php echo $row['id']?>" class="delete"><i class="fa fa-trash"></i> <?= $tpl->__('links.delete'); ?></a></td>
+                        <td style="min-width:200px;">
+                            <?php if ($isInvited && ! empty($row['pwReset'])) { ?>
+                                <div id="invite-link-container-<?= $row['id'] ?>">
+                                    <button
+                                        type="button"
+                                        class="btn btn-link btn-xs"
+                                        hx-get="<?= BASE_URL ?>/hx/users/inviteActions/getLink/<?= $row['id'] ?>"
+                                        hx-target="#invite-link-container-<?= $row['id'] ?>"
+                                        hx-swap="innerHTML"
+                                        hx-indicator="#invite-link-container-<?= $row['id'] ?>"
+                                        title="<?= $tpl->__('label.copyinviteLink') ?>"
+                                    >
+                                        <i class="fa fa-link"></i> <?= $tpl->__('label.copyinviteLink') ?>
+                                    </button>
+                                </div>
+                            <?php } ?>
+                        </td>
+                        <td style="white-space:nowrap;">
+                            <?php if ($isInvited) { ?>
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary btn-xs"
+                                    hx-post="<?= BASE_URL ?>/hx/users/inviteActions/resend/<?= $row['id'] ?>"
+                                    hx-swap="none"
+                                    title="<?= $tpl->__('buttons.resend_invite') ?>"
+                                >
+                                    <i class="fa fa-paper-plane"></i> <?= $tpl->__('buttons.resend_invite') ?>
+                                </button>
+                            <?php } ?>
+                            <a href="<?= BASE_URL ?>/users/delUser/<?php echo $row['id']?>" class="delete"><i class="fa fa-trash"></i> <?= $tpl->__('links.delete'); ?></a>
+                        </td>
                     </tr>
             <?php } ?>
             </tbody>

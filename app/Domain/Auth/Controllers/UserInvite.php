@@ -62,6 +62,14 @@ class UserInvite extends Controller
             $user = $this->authService->getUserByInviteLink($params['id']);
 
             if (! $user) {
+                // Check if invite exists but has expired
+                $expiredUser = $this->authService->getExpiredInviteUser($params['id']);
+                if ($expiredUser) {
+                    $this->tpl->assign('inviteId', $inviteId);
+
+                    return $this->tpl->display('auth.userInviteExpired', 'entry');
+                }
+
                 return FrontcontrollerCore::redirect(BASE_URL.'/auth/login');
             }
 
@@ -315,6 +323,9 @@ class UserInvite extends Controller
             $userInvite['user'] = $userInvite['username'];
 
             $result = $this->userService->editUser($userInvite, $userInvite['id']);
+
+            // Invalidate the invite token now that the user has accepted
+            $this->userService->clearInviteToken($userInvite['id']);
 
             self::dispatchEvent('onboarding_finished');
 

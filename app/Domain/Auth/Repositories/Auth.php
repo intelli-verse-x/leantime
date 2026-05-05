@@ -171,13 +171,32 @@ class Auth
     }
 
     /**
-     * getUserByInviteLink - gets an invited user by invite code
+     * getUserByInviteLink - gets an invited user by invite code (only if invite has not expired)
      */
     public function getUserByInviteLink(string $hash): bool|array
     {
         $result = $this->db->table('zp_user')
             ->where('pwReset', $hash)
             ->whereRaw('LOWER(status) = ?', ['i'])
+            ->where(function ($query) {
+                $query->whereNull('pwResetExpiration')
+                    ->orWhere('pwResetExpiration', '>', now());
+            })
+            ->limit(1)
+            ->first();
+
+        return $result ? (array) $result : false;
+    }
+
+    /**
+     * getExpiredInviteUser - gets an invited user whose invite has expired (for informative error display)
+     */
+    public function getExpiredInviteUser(string $hash): bool|array
+    {
+        $result = $this->db->table('zp_user')
+            ->where('pwReset', $hash)
+            ->whereRaw('LOWER(status) = ?', ['i'])
+            ->where('pwResetExpiration', '<=', now())
             ->limit(1)
             ->first();
 
