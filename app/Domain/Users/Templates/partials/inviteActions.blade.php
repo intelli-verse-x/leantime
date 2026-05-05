@@ -15,22 +15,10 @@
         <button
             type="button"
             class="btn btn-secondary btn-xs"
-            onclick="
-                navigator.clipboard.writeText('{{ $inviteLink }}')
-                    .then(function() {
-                        var btn = this;
-                        var original = btn.innerHTML;
-                        btn.innerHTML = '<i class=\'fa fa-check\'></i>';
-                        setTimeout(function() { btn.innerHTML = original; }, 2000);
-                    }.bind(this))
-                    .catch(function() {
-                        document.getElementById('invite-link-input-{{ $userId }}').select();
-                        document.execCommand('copy');
-                    });
-            "
+            onclick="leantime.usersController.copyInviteLink('{{ $userId }}', '{{ $inviteLink }}')"
             title="{{ __('label.copyinviteLink') }}"
         >
-            <i class="fa fa-copy"></i>
+            <i class="fa fa-copy" id="invite-copy-icon-{{ $userId }}"></i>
         </button>
     </div>
 @endisset

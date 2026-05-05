@@ -3,7 +3,6 @@
 namespace Leantime\Domain\Users\Hxcontrollers;
 
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Leantime\Core\Controller\HtmxController;
 use Leantime\Domain\Auth\Models\Roles;
 use Leantime\Domain\Auth\Services\Auth;
@@ -57,7 +56,6 @@ class InviteActions extends HtmxController
 
         if ($result) {
             Cache::put($throttleKey, true, 300); // throttle for 5 minutes
-            Log::info('Invite resent via HxController', ['userId' => $userId, 'admin' => session('userdata.id')]);
             $this->tpl->setNotification($this->language->__('notification.user_invited_successfully'), 'success');
         } else {
             $this->tpl->setNotification($this->language->__('notification.error'), 'error');

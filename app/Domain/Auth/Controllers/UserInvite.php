@@ -65,8 +65,6 @@ class UserInvite extends Controller
                 // Check if invite exists but has expired
                 $expiredUser = $this->authService->getExpiredInviteUser($params['id']);
                 if ($expiredUser) {
-                    $this->tpl->assign('inviteId', $inviteId);
-
                     return $this->tpl->display('auth.userInviteExpired', 'entry');
                 }
 

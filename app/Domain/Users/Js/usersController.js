@@ -195,6 +195,37 @@ leantime.usersController = (function () {
 
     }
 
+    /**
+     * copyInviteLink - copies an invite URL to the clipboard and shows a brief confirmation.
+     *
+     * @param {string} userId    - The user ID, used to target the icon element.
+     * @param {string} inviteUrl - The full invite URL to copy.
+     */
+    var copyInviteLink = function (userId, inviteUrl) {
+        var iconEl = document.getElementById('invite-copy-icon-' + userId);
+
+        var showSuccess = function () {
+            if (iconEl) {
+                iconEl.classList.remove('fa-copy');
+                iconEl.classList.add('fa-check');
+                setTimeout(function () {
+                    iconEl.classList.remove('fa-check');
+                    iconEl.classList.add('fa-copy');
+                }, 2000);
+            }
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(inviteUrl).then(showSuccess).catch(function () {
+                var input = document.getElementById('invite-link-input-' + userId);
+                if (input) { input.select(); document.execCommand('copy'); showSuccess(); }
+            });
+        } else {
+            var input = document.getElementById('invite-link-input-' + userId);
+            if (input) { input.select(); document.execCommand('copy'); showSuccess(); }
+        }
+    };
+
     // Make public what you want to have public, everything else is private
     return {
         readURL: readURL,
@@ -203,6 +234,7 @@ leantime.usersController = (function () {
         initUserTable:initUserTable,
         _initModals:_initModals,
         checkPWStrength:checkPWStrength,
-        initUserEditModal:initUserEditModal
+        initUserEditModal:initUserEditModal,
+        copyInviteLink:copyInviteLink
     };
 })();

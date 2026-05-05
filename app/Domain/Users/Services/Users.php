@@ -265,17 +265,17 @@ class Users
         $result = $this->userRepo->addUser($values);
 
         if ($result === false) {
-            Log::warning('Failed to create invited user', ['email' => $values['user'] ?? '']);
+            Log::warning('Failed to create invited user', ['email' => $this->maskEmail($values['user'] ?? '')]);
 
             return false;
         }
 
-        Log::info('User invite created', ['userId' => $result, 'email' => $values['user'] ?? '']);
+        Log::info('User invite created', ['userId' => $result, 'email' => $this->maskEmail($values['user'] ?? '')]);
 
         $emailSent = $this->sendUserInvite($inviteCode, $values['user']);
 
         if (! $emailSent) {
-            Log::warning('Invite email could not be sent for new user', ['userId' => $result, 'email' => $values['user'] ?? '']);
+            Log::warning('Invite email could not be sent for new user', ['userId' => $result, 'email' => $this->maskEmail($values['user'] ?? '')]);
         }
 
         return $result;
@@ -311,11 +311,11 @@ class Users
 
             $mailer->sendMail($to, session('userdata.name') ?? 'Leantime');
 
-            Log::info('Invite email sent successfully', ['recipient' => $user]);
+            Log::info('Invite email sent successfully', ['recipient' => $this->maskEmail($user)]);
 
             return true;
         } catch (\Exception $e) {
-            Log::error('Failed to send invite email', ['recipient' => $user, 'error' => $e->getMessage()]);
+            Log::error('Failed to send invite email', ['recipient' => $this->maskEmail($user), 'error' => $e->getMessage()]);
 
             return false;
         }
@@ -347,7 +347,7 @@ class Users
             'pwResetExpiration' => $expiry,
         ]);
 
-        Log::info('Invite resent', ['userId' => $userId, 'email' => $user['username']]);
+        Log::info('Invite resent', ['userId' => $userId, 'email' => $this->maskEmail($user['username'])]);
 
         return $this->sendUserInvite($inviteCode, $user['username']);
     }
@@ -503,5 +503,23 @@ class Users
         }
 
         throw new \Exception('Not authorized');
+    }
+
+    /**
+     * maskEmail - masks an email address for safe logging (e.g. jo***@example.com)
+     *
+     * @param  string  $email  The email to mask
+     * @return string The masked email
+     */
+    private function maskEmail(string $email): string
+    {
+        if (! str_contains($email, '@')) {
+            return '***';
+        }
+
+        [$local, $domain] = explode('@', $email, 2);
+        $maskedLocal = substr($local, 0, min(2, strlen($local))).'***';
+
+        return $maskedLocal.'@'.$domain;
     }
 }
