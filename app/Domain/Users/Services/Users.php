@@ -518,7 +518,13 @@ class Users
         }
 
         [$local, $domain] = explode('@', $email, 2);
-        $maskedLocal = substr($local, 0, min(2, strlen($local))).'***';
+
+        if ($local === '') {
+            return '***@'.$domain;
+        }
+
+        $visibleChars = min(2, strlen($local));
+        $maskedLocal = substr($local, 0, $visibleChars).'***';
 
         return $maskedLocal.'@'.$domain;
     }

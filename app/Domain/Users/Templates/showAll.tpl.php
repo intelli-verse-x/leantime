@@ -53,9 +53,10 @@ $roles = $tpl->get('roles');
                 </tr>
             </thead>
             <tbody>
+            <?php $now = now(); ?>
             <?php foreach ($tpl->get('allUsers') as $row) {
                 $isInvited = strtolower((string) $row['status']) === 'i';
-                $isExpired = $isInvited && ! empty($row['pwResetExpiration']) && now()->greaterThan($row['pwResetExpiration']);
+                $isExpired = $isInvited && ! empty($row['pwResetExpiration']) && $now->greaterThan($row['pwResetExpiration']);
             ?>
                     <tr>
                         <td style="padding:6px 10px;">

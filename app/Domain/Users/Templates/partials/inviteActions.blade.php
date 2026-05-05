@@ -15,7 +15,9 @@
         <button
             type="button"
             class="btn btn-secondary btn-xs"
-            onclick="leantime.usersController.copyInviteLink('{{ $userId }}', '{{ $inviteLink }}')"
+            data-user-id="{{ $userId }}"
+            data-invite-link="{{ $inviteLink }}"
+            onclick="leantime.usersController.copyInviteLink(this.dataset.userId, this.dataset.inviteLink)"
             title="{{ __('label.copyinviteLink') }}"
         >
             <i class="fa fa-copy" id="invite-copy-icon-{{ $userId }}"></i>
