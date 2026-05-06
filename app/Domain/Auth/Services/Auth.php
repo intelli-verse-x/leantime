@@ -408,13 +408,23 @@ class Auth implements Authenticatable
     }
 
     /**
-     * getUserByInviteLink - gets the user by invite link
+     * getUserByInviteLink - gets the user by invite link (only if not expired)
      *
      * @param  string  $hash  invite link hash
      */
     public function getUserByInviteLink(string $hash): bool|array
     {
         return $this->authRepo->getUserByInviteLink($hash);
+    }
+
+    /**
+     * getExpiredInviteUser - gets an invited user whose invite has expired
+     *
+     * @param  string  $hash  invite link hash
+     */
+    public function getExpiredInviteUser(string $hash): bool|array
+    {
+        return $this->authRepo->getExpiredInviteUser($hash);
     }
 
     /**
