@@ -1,32 +1,58 @@
 {{--
   Navbar timer widget — rendered by WorkTracker\Hxcontrollers\Timer::getStatus().
   Polled every 30 s when a session is running; otherwise only re-renders on workTrackerUpdate event.
+
+  Three states are possible:
+    • running   — green desktop icon, live-ticking elapsed
+    • paused    — yellow pause icon, FROZEN elapsed (no client-side tick)
+    • idle      — grey desktop icon, "Start Session"
 --}}
 @if ($login::userIsAtLeast(\Leantime\Domain\Auth\Models\Roles::$editor, true))
+
+@php
+    $isRunning   = isset($timerStatus['running']) && $timerStatus['running'];
+    $isPaused    = isset($timerStatus['paused'])  && $timerStatus['paused'];
+    $isOpen      = $isRunning || $isPaused;
+    $sessionId   = (int) ($timerStatus['session_id'] ?? 0);
+@endphp
 
 <li
     class="timerHeadMenu workTrackerTimerWidget"
     id="workTrackerTimerWidget"
     hx-get="{{ BASE_URL }}/hx/worktracker/timer/get-status"
-    hx-trigger="workTrackerUpdate from:body{{ isset($timerStatus['running']) && $timerStatus['running'] ? ', every 30s' : '' }}"
+    hx-trigger="workTrackerUpdate from:body{{ $isRunning ? ', every 30s' : '' }}"
     hx-swap="outerHTML"
 >
-    @if (isset($timerStatus['running']) && $timerStatus['running'])
-        {{-- ── Running state ── --}}
+    @if ($isOpen)
+        {{-- ── Running / paused state ── --}}
         <a
             href="javascript:void(0);"
-            class="dropdown-toggle workTracker-running"
+            class="dropdown-toggle {{ $isPaused ? 'workTracker-paused' : 'workTracker-running' }}"
             data-toggle="dropdown"
-            data-tippy-content="Work Session Running (screen-recorded shift)"
+            data-tippy-content="{{ $isPaused ? 'Work Session Paused — click to resume' : 'Work Session Running (screen-recorded shift)' }}"
         >
-            <i class="fa fa-desktop tw-text-green-500 tw-mr-xs"></i>
-            <span class="workTracker-elapsed" id="workTracker-elapsed" data-start-seconds="{{ $timerStatus['elapsed_seconds'] }}">
+            @if ($isPaused)
+                <i class="fa fa-pause-circle tw-text-yellow-500 tw-mr-xs"></i>
+            @else
+                <i class="fa fa-desktop tw-text-green-500 tw-mr-xs"></i>
+            @endif
+            <span
+                class="workTracker-elapsed"
+                id="workTracker-elapsed"
+                data-start-seconds="{{ $timerStatus['elapsed_seconds'] }}"
+                data-paused="{{ $isPaused ? '1' : '0' }}"
+            >
                 {{ $formattedTime }}
             </span>
+            @if ($isPaused)
+                <small class="tw-ml-xs tw-text-yellow-700">(paused)</small>
+            @endif
         </a>
 
         <ul class="dropdown-menu pull-right">
-            <li class="nav-header">Work Session Active</li>
+            <li class="nav-header">
+                {{ $isPaused ? 'Work Session Paused' : 'Work Session Active' }}
+            </li>
             <li>
                 <a href="{{ BASE_URL }}/worktracker/showDashboard">
                     <i class="fa fa-clock-o tw-mr-xs"></i> My Sessions
@@ -40,11 +66,34 @@
             </li>
             @endif
             <li class="divider"></li>
+            @if ($isPaused)
+            <li>
+                <a
+                    href="javascript:void(0);"
+                    id="workTracker-resumeBtn"
+                    data-session-id="{{ $sessionId }}"
+                    title="Resume timer and continue tracking"
+                >
+                    <i class="fa fa-play-circle tw-mr-xs tw-text-green-600"></i> Resume Session
+                </a>
+            </li>
+            @else
+            <li>
+                <a
+                    href="javascript:void(0);"
+                    id="workTracker-pauseBtn"
+                    data-session-id="{{ $sessionId }}"
+                    title="Pause the timer — break time will be excluded from your total"
+                >
+                    <i class="fa fa-pause-circle tw-mr-xs tw-text-yellow-500"></i> Pause Session
+                </a>
+            </li>
+            @endif
             <li>
                 <a
                     href="javascript:void(0);"
                     id="workTracker-stopBtn"
-                    data-session-id="{{ (int) ($timerStatus['session_id'] ?? 0) }}"
+                    data-session-id="{{ $sessionId }}"
                     title="One-click stop. To save an end screenshot, use the Stop button on the My Sessions page."
                 >
                     <i class="fa fa-stop-circle tw-mr-xs tw-text-red-500"></i> Stop Session
@@ -100,6 +149,9 @@
     // ── Live tick: increment the displayed time every second when running ──
     // Must re-attach to the elapsed span every time HTMX swaps in a new widget,
     // otherwise the timer stays frozen at the value rendered server-side.
+    // When the swapped-in widget is in the PAUSED state (data-paused="1"),
+    // we deliberately do NOT start a ticker — the rendered value is the frozen
+    // active duration and any client-side increment would lie to the user.
     var currentTicker = null;
 
     function attachTicker() {
@@ -108,6 +160,7 @@
         if (!el) return;
         var seconds = parseInt(el.dataset.startSeconds, 10) || 0;
         el.textContent = formatDuration(seconds);
+        if (el.dataset.paused === '1') return; // frozen on purpose
         currentTicker = setInterval(function () {
             seconds++;
             el.textContent = formatDuration(seconds);
@@ -221,14 +274,15 @@
 
         var sessionId = parseInt(btn.dataset.sessionId || '0', 10);
         if (sessionId <= 0) {
-            // Fallback: ask the server for the current status before complaining
+            // Fallback: ask the server for the current status before complaining.
+            // A paused session is still stoppable, so accept either running or paused.
             fetch(BASE_URL + '/worktracker/api', {
                 method: 'GET',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                if (data && data.running && data.session_id) {
+                if (data && (data.running || data.paused) && data.session_id) {
                     btn.dataset.sessionId = data.session_id;
                     btn.click();
                 } else {
@@ -262,6 +316,52 @@
         .catch(function () {
             showNotification('Network error. Please try again.', 'error');
         });
+    });
+
+    // ── Pause / Resume buttons ──
+    // Same sessionId pattern as Stop — read from data-attribute at click time
+    // since this script registers once at first page load but the buttons get
+    // swapped in by HTMX with the current session id baked into a data-attr.
+    function sendPauseResume(btn, action) {
+        var sessionId = parseInt(btn.dataset.sessionId || '0', 10);
+        if (sessionId <= 0) {
+            showNotification('No active session.', 'error');
+            return;
+        }
+
+        var labelEl = btn;
+        var originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin tw-mr-xs"></i> ' +
+            (action === 'pause' ? 'Pausing…' : 'Resuming…');
+
+        fetch(BASE_URL + '/worktracker/api', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ action: action, session_id: sessionId })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.success) {
+                htmx.trigger(document.body, 'workTrackerUpdate');
+            } else {
+                showNotification(data.message || ('Could not ' + action + ' session.'), 'error');
+                labelEl.innerHTML = originalHtml;
+            }
+        })
+        .catch(function () {
+            showNotification('Network error. Please try again.', 'error');
+            labelEl.innerHTML = originalHtml;
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        var pauseBtn = e.target.closest('#workTracker-pauseBtn');
+        if (pauseBtn) { sendPauseResume(pauseBtn, 'pause'); return; }
+        var resumeBtn = e.target.closest('#workTracker-resumeBtn');
+        if (resumeBtn) { sendPauseResume(resumeBtn, 'resume'); return; }
     });
 
     /**

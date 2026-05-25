@@ -36,7 +36,7 @@ class Timer extends HtmxController
     {
         if (! session()->exists('userdata')) {
             // No auth — render nothing; the partial gates on the role check too.
-            $this->tpl->assign('timerStatus', ['running' => false]);
+            $this->tpl->assign('timerStatus', ['running' => false, 'paused' => false]);
             $this->tpl->assign('formattedTime', '00:00:00');
 
             return;
@@ -45,8 +45,10 @@ class Timer extends HtmxController
         $userId = (int) session('userdata.id');
         $status = $this->workTrackerService->getTimerStatus($userId);
 
+        $isOpen = ! empty($status['running']) || ! empty($status['paused']);
+
         $this->tpl->assign('timerStatus', $status);
-        $this->tpl->assign('formattedTime', $status['running']
+        $this->tpl->assign('formattedTime', $isOpen
             ? WorkTrackerService::formatDuration($status['elapsed_seconds'])
             : '00:00:00');
     }

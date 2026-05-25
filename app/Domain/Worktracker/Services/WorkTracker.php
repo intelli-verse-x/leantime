@@ -93,11 +93,11 @@ class WorkTracker
     }
 
     /**
-     * Cancel an orphaned running session WITHOUT a screenshot.
+     * Cancel an orphaned open session (running OR paused) WITHOUT a screenshot.
      *
      * Used when an employee closes their browser without clicking Stop, then
      * comes back and needs to clear the stuck session before starting a new one.
-     * Closes the session, calculates duration up to now, and writes no end_screenshot.
+     * Closes the session, calculates active duration up to now, writes no end_screenshot.
      *
      * @return array ['success' => bool, 'duration' => int|null, 'message' => string]
      */
@@ -107,8 +107,8 @@ class WorkTracker
         if (! $session) {
             return ['success' => false, 'duration' => null, 'message' => 'Session not found.'];
         }
-        if ($session->status !== 'running') {
-            return ['success' => false, 'duration' => null, 'message' => 'Session is not running.'];
+        if (! in_array($session->status, ['running', 'paused'], true)) {
+            return ['success' => false, 'duration' => null, 'message' => 'Session is not open.'];
         }
 
         $closed = $this->repo->closeSession($sessionId, $userId, '');
@@ -116,7 +116,7 @@ class WorkTracker
             return ['success' => false, 'duration' => null, 'message' => 'Could not close session.'];
         }
 
-        $duration = (new \DateTime())->getTimestamp() - (new \DateTime($session->start_time))->getTimestamp();
+        $duration = $this->computeActiveSeconds($session, new \DateTime());
 
         Log::info('WorkTracker: session cancelled (orphaned/no end screenshot)', [
             'sessionId' => $sessionId,
@@ -128,7 +128,73 @@ class WorkTracker
     }
 
     /**
-     * Stop the specified running session.
+     * Pause a running session — timer freezes until resumed.
+     */
+    public function pauseSession(int $sessionId, int $userId): array
+    {
+        $session = $this->repo->getSession($sessionId, $userId);
+        if (! $session) {
+            return ['success' => false, 'message' => 'Session not found.'];
+        }
+        if ($session->status !== 'running') {
+            return ['success' => false, 'message' => 'Session is not running.'];
+        }
+
+        $ok = $this->repo->pauseSession($sessionId, $userId);
+        if (! $ok) {
+            return ['success' => false, 'message' => 'Could not pause session.'];
+        }
+
+        Log::info('WorkTracker: session paused', ['sessionId' => $sessionId, 'userId' => $userId]);
+
+        return ['success' => true, 'message' => 'Session paused.'];
+    }
+
+    /**
+     * Resume a paused session — timer continues from the active duration so far.
+     */
+    public function resumeSession(int $sessionId, int $userId): array
+    {
+        $session = $this->repo->getSession($sessionId, $userId);
+        if (! $session) {
+            return ['success' => false, 'message' => 'Session not found.'];
+        }
+        if ($session->status !== 'paused') {
+            return ['success' => false, 'message' => 'Session is not paused.'];
+        }
+
+        $ok = $this->repo->resumeSession($sessionId, $userId);
+        if (! $ok) {
+            return ['success' => false, 'message' => 'Could not resume session.'];
+        }
+
+        Log::info('WorkTracker: session resumed', ['sessionId' => $sessionId, 'userId' => $userId]);
+
+        return ['success' => true, 'message' => 'Session resumed.'];
+    }
+
+    /**
+     * Close every open (running OR paused) session for a user. Called on logout
+     * so a forgotten-to-stop timer doesn't keep accruing in the background.
+     *
+     * @return int number of sessions auto-closed
+     */
+    public function closeAllForUser(int $userId): int
+    {
+        $count = $this->repo->closeOpenSessionsForUser($userId);
+        if ($count > 0) {
+            Log::info('WorkTracker: auto-closed open sessions on logout', [
+                'userId' => $userId,
+                'count'  => $count,
+            ]);
+        }
+        return $count;
+    }
+
+    /**
+     * Stop the specified open session. Accepts both `running` and `paused`
+     * sessions — if paused, the repo finalises the still-open pause delta
+     * before computing the active duration.
      *
      * @param  int     $sessionId
      * @param  int     $userId
@@ -143,8 +209,8 @@ class WorkTracker
             return ['success' => false, 'duration' => null, 'message' => 'Session not found or already completed.'];
         }
 
-        if ($session->status !== 'running') {
-            return ['success' => false, 'duration' => null, 'message' => 'Session is not running.'];
+        if (! in_array($session->status, ['running', 'paused'], true)) {
+            return ['success' => false, 'duration' => null, 'message' => 'Session is already closed.'];
         }
 
         $screenshotPath = '';
@@ -163,14 +229,30 @@ class WorkTracker
             return ['success' => false, 'duration' => null, 'message' => 'Could not close session.'];
         }
 
-        $startTime = new \DateTime($session->start_time);
-        $duration  = (new \DateTime())->getTimestamp() - $startTime->getTimestamp();
-
         return [
             'success'  => true,
-            'duration' => $duration,
+            'duration' => $this->computeActiveSeconds($session, new \DateTime()),
             'message'  => 'Session completed.',
         ];
+    }
+
+    /**
+     * Compute the active (non-paused) elapsed seconds for an open session
+     * up to the given reference time. Used by status/dashboard queries so
+     * a paused session appears frozen at the active duration.
+     */
+    private function computeActiveSeconds(object $session, \DateTime $now): int
+    {
+        $start         = new \DateTime($session->start_time);
+        $gross         = $now->getTimestamp() - $start->getTimestamp();
+        $pausedSeconds = (int) ($session->paused_seconds ?? 0);
+
+        if (($session->status ?? '') === 'paused' && ! empty($session->last_paused_at)) {
+            $pauseStart = new \DateTime($session->last_paused_at);
+            $pausedSeconds += max(0, $now->getTimestamp() - $pauseStart->getTimestamp());
+        }
+
+        return max(0, $gross - $pausedSeconds);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -180,23 +262,40 @@ class WorkTracker
     /**
      * Returns the current timer state for the navbar widget.
      *
-     * @return array{running: bool, session_id: int|null, elapsed_seconds: int, start_time: string|null}
+     * `elapsed_seconds` is the active duration (gross − all pause intervals),
+     * so a paused session reports a frozen value the UI can display verbatim.
+     *
+     * @return array{
+     *   running:bool, paused:bool, session_id:int|null, elapsed_seconds:int,
+     *   start_time:string|null, paused_seconds:int, last_paused_at:string|null
+     * }
      */
     public function getTimerStatus(int $userId): array
     {
         $session = $this->repo->getActiveSession($userId);
 
         if (! $session) {
-            return ['running' => false, 'session_id' => null, 'elapsed_seconds' => 0, 'start_time' => null];
+            return [
+                'running'         => false,
+                'paused'          => false,
+                'session_id'      => null,
+                'elapsed_seconds' => 0,
+                'start_time'      => null,
+                'paused_seconds'  => 0,
+                'last_paused_at'  => null,
+            ];
         }
 
-        $elapsed = (new \DateTime())->getTimestamp() - (new \DateTime($session->start_time))->getTimestamp();
+        $elapsed = $this->computeActiveSeconds($session, new \DateTime());
 
         return [
-            'running'         => true,
+            'running'         => $session->status === 'running',
+            'paused'          => $session->status === 'paused',
             'session_id'      => (int) $session->id,
             'elapsed_seconds' => $elapsed,
             'start_time'      => $session->start_time,
+            'paused_seconds'  => (int) ($session->paused_seconds ?? 0),
+            'last_paused_at'  => $session->last_paused_at ?? null,
         ];
     }
 
@@ -213,7 +312,7 @@ class WorkTracker
 
         $elapsed = 0;
         if ($activeSession) {
-            $elapsed = (new \DateTime())->getTimestamp() - (new \DateTime($activeSession->start_time))->getTimestamp();
+            $elapsed = $this->computeActiveSeconds($activeSession, new \DateTime());
         }
 
         $sessions = $this->repo->getUserSessions($userId, 20, 0);
