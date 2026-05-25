@@ -9,6 +9,18 @@
     $ist = static fn ($utcValue) => $utcValue
         ? \Carbon\Carbon::parse($utcValue, 'UTC')->setTimezone('Asia/Kolkata')
         : null;
+
+    /**
+     * Render cumulative paused_seconds as compact "Hh MMm" (or "—" for zero)
+     * so managers can quickly read break time off each row.
+     */
+    $fmtPaused = static function ($seconds) {
+        $s = (int) $seconds;
+        if ($s <= 0) return '—';
+        $h = intdiv($s, 3600);
+        $m = intdiv($s % 3600, 60);
+        return $h > 0 ? sprintf('%dh %02dm', $h, $m) : sprintf('%dm', $m);
+    };
 @endphp
 
 <x-global::pageheader :icon="'fa fa-users'">
@@ -74,6 +86,7 @@
                                         <th>Start (IST)</th>
                                         <th>End (IST)</th>
                                         <th>Duration</th>
+                                        <th title="Cumulative break time excluded from Duration">Paused</th>
                                         <th>Status</th>
                                         <th>Start SS</th>
                                         <th>End SS</th>
@@ -81,7 +94,7 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($sessions as $session)
-                                    <tr @if($session['status'] === 'running') class="tw-bg-green-50" @endif>
+                                    <tr @if($session['status'] === 'running') class="tw-bg-green-50" @elseif($session['status'] === 'paused') class="tw-bg-yellow-50" @endif>
                                         <td>{{ $session['id'] }}</td>
                                         <td>
                                             <strong>{{ $session['employee_name'] ?: 'Unknown' }}</strong>
@@ -94,15 +107,22 @@
                                         <td>
                                             @if ($session['end_time'])
                                                 {{ $ist($session['end_time'])->format('H:i:s') }}
+                                            @elseif ($session['status'] === 'paused')
+                                                <span class="tw-text-yellow-700 tw-font-semibold">Paused…</span>
                                             @else
                                                 <span class="tw-text-green-600 tw-font-semibold">Running…</span>
                                             @endif
                                         </td>
                                         <td class="tw-font-mono">{{ $session['duration_formatted'] }}</td>
+                                        <td class="tw-font-mono">{{ $fmtPaused($session['paused_seconds'] ?? 0) }}</td>
                                         <td>
                                             @if ($session['status'] === 'running')
                                                 <span class="tag tw-bg-green-100 tw-text-green-800">
                                                     <i class="fa fa-circle tw-mr-xs" style="font-size:8px;"></i>Running
+                                                </span>
+                                            @elseif ($session['status'] === 'paused')
+                                                <span class="tag tw-bg-yellow-100 tw-text-yellow-800">
+                                                    <i class="fa fa-pause tw-mr-xs" style="font-size:8px;"></i>Paused
                                                 </span>
                                             @else
                                                 <span class="tag">Completed</span>

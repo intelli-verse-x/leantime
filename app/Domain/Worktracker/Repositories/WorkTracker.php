@@ -33,8 +33,10 @@ class WorkTracker
             $table->unsignedInteger('user_id');
             $table->dateTime('start_time')->nullable();
             $table->dateTime('end_time')->nullable();
-            $table->unsignedInteger('total_duration')->nullable()->comment('Duration in seconds');
-            $table->enum('status', ['running', 'completed'])->default('running');
+            $table->unsignedInteger('total_duration')->nullable()->comment('Active seconds, excludes paused intervals');
+            $table->enum('status', ['running', 'paused', 'completed'])->default('running');
+            $table->unsignedInteger('paused_seconds')->default(0)->comment('Total cumulative break time in seconds');
+            $table->dateTime('last_paused_at')->nullable()->comment('When the current pause started; NULL when running or completed');
             $table->string('start_screenshot', 512)->nullable();
             $table->string('end_screenshot', 512)->nullable();
             $table->timestamps();
@@ -54,6 +56,8 @@ class WorkTracker
             'user_id'          => $userId,
             'start_time'       => now()->toDateTimeString(),
             'status'           => 'running',
+            'paused_seconds'   => 0,
+            'last_paused_at'   => null,
             'start_screenshot' => $screenshotPath,
             'created_at'       => now(),
             'updated_at'       => now(),
@@ -61,30 +65,46 @@ class WorkTracker
     }
 
     /**
-     * Close an active session: save end screenshot, calculate duration, mark completed.
+     * Close an active session: save end screenshot, calculate active duration
+     * (gross elapsed minus all paused intervals), mark completed.
+     *
+     * If the session is currently in the `paused` state, the still-open pause
+     * delta is folded into paused_seconds before the active duration is computed
+     * so we don't count break time toward total_duration.
      */
     public function closeSession(int $sessionId, int $userId, string $screenshotPath): bool
     {
         $session = $this->db->table('zp_work_sessions')
             ->where('id', $sessionId)
             ->where('user_id', $userId)
-            ->where('status', 'running')
+            ->whereIn('status', ['running', 'paused'])
             ->first();
 
         if (! $session) {
             return false;
         }
 
-        $startTime = new \DateTime($session->start_time);
-        $endTime   = new \DateTime();
-        $duration  = $endTime->getTimestamp() - $startTime->getTimestamp();
+        $endTime       = new \DateTime();
+        $startTime     = new \DateTime($session->start_time);
+        $pausedSeconds = (int) ($session->paused_seconds ?? 0);
+
+        // If we're closing while paused, finalize the still-open pause delta first.
+        if ($session->status === 'paused' && ! empty($session->last_paused_at)) {
+            $pauseStart = new \DateTime($session->last_paused_at);
+            $pausedSeconds += max(0, $endTime->getTimestamp() - $pauseStart->getTimestamp());
+        }
+
+        $grossSeconds  = $endTime->getTimestamp() - $startTime->getTimestamp();
+        $activeSeconds = max(0, $grossSeconds - $pausedSeconds);
 
         return (bool) $this->db->table('zp_work_sessions')
             ->where('id', $sessionId)
             ->where('user_id', $userId)
             ->update([
                 'end_time'        => $endTime->format('Y-m-d H:i:s'),
-                'total_duration'  => $duration,
+                'total_duration'  => $activeSeconds,
+                'paused_seconds'  => $pausedSeconds,
+                'last_paused_at'  => null,
                 'status'          => 'completed',
                 'end_screenshot'  => $screenshotPath,
                 'updated_at'      => now(),
@@ -92,7 +112,88 @@ class WorkTracker
     }
 
     /**
-     * Retrieve the currently running session for a user, or false if none.
+     * Transition a running session into the `paused` state.
+     * Records the pause start so we can compute the delta on resume.
+     */
+    public function pauseSession(int $sessionId, int $userId): bool
+    {
+        $affected = $this->db->table('zp_work_sessions')
+            ->where('id', $sessionId)
+            ->where('user_id', $userId)
+            ->where('status', 'running')
+            ->update([
+                'status'         => 'paused',
+                'last_paused_at' => now()->toDateTimeString(),
+                'updated_at'     => now(),
+            ]);
+
+        return $affected > 0;
+    }
+
+    /**
+     * Transition a paused session back to `running`.
+     * Folds the just-finished pause interval into the cumulative paused_seconds.
+     */
+    public function resumeSession(int $sessionId, int $userId): bool
+    {
+        $session = $this->db->table('zp_work_sessions')
+            ->where('id', $sessionId)
+            ->where('user_id', $userId)
+            ->where('status', 'paused')
+            ->first();
+
+        if (! $session || empty($session->last_paused_at)) {
+            return false;
+        }
+
+        $pauseStart = new \DateTime($session->last_paused_at);
+        $now        = new \DateTime();
+        $delta      = max(0, $now->getTimestamp() - $pauseStart->getTimestamp());
+
+        $affected = $this->db->table('zp_work_sessions')
+            ->where('id', $sessionId)
+            ->where('user_id', $userId)
+            ->where('status', 'paused')
+            ->update([
+                'status'         => 'running',
+                'paused_seconds' => (int) ($session->paused_seconds ?? 0) + $delta,
+                'last_paused_at' => null,
+                'updated_at'     => now(),
+            ]);
+
+        return $affected > 0;
+    }
+
+    /**
+     * Close every open (running OR paused) session for a user.
+     * Called when the user logs out so they don't leave a timer ticking
+     * indefinitely after the browser session is gone. No end screenshot —
+     * by the time logout fires the screen-capture stream is no longer
+     * available and prompting for permission would be a confusing UX.
+     *
+     * @return int  number of sessions closed
+     */
+    public function closeOpenSessionsForUser(int $userId): int
+    {
+        $open = $this->db->table('zp_work_sessions')
+            ->where('user_id', $userId)
+            ->whereIn('status', ['running', 'paused'])
+            ->get();
+
+        $closed = 0;
+        foreach ($open as $session) {
+            if ($this->closeSession((int) $session->id, $userId, '')) {
+                $closed++;
+            }
+        }
+
+        return $closed;
+    }
+
+    /**
+     * Retrieve the currently open session (running OR paused) for a user.
+     * Renamed semantically from "active" since paused sessions are still
+     * the user's current session — they just aren't accruing time.
      *
      * @return object|false
      */
@@ -100,7 +201,7 @@ class WorkTracker
     {
         $row = $this->db->table('zp_work_sessions')
             ->where('user_id', $userId)
-            ->where('status', 'running')
+            ->whereIn('status', ['running', 'paused'])
             ->orderByDesc('start_time')
             ->first();
 

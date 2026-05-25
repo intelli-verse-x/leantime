@@ -22,6 +22,8 @@ use Symfony\Component\HttpFoundation\Response;
  * as the action name on a 2-segment URL):
  *   GET    /worktracker/api  → get()    — current timer status
  *   POST   /worktracker/api  → post()   — start a session
+ *   PUT    /worktracker/api  → put()    — pause or resume a session
+ *                                          body: { action: "pause"|"resume", session_id }
  *   PATCH  /worktracker/api  → patch()  — stop a session (optionally with end screenshot)
  *   DELETE /worktracker/api  → delete() — cancel an orphan session (no screenshot needed)
  */
@@ -78,8 +80,37 @@ class Api extends Controller
     }
 
     /**
+     * PUT /worktracker/api
+     * Pause or resume an active work session.
+     *
+     * JSON body: { "action": "pause" | "resume", "session_id": 101 }
+     */
+    public function put(array $params): Response
+    {
+        Auth::authOrRedirect([Roles::$editor, Roles::$manager, Roles::$admin, Roles::$owner], true);
+
+        $userId    = (int) session('userdata.id');
+        $body      = $this->jsonBody();
+        $action    = $body['action'] ?? '';
+        $sessionId = isset($body['session_id']) ? (int) $body['session_id'] : 0;
+
+        if ($sessionId <= 0) {
+            return $this->tpl->displayJson(['success' => false, 'message' => 'session_id is required.'], 422);
+        }
+        if (! in_array($action, ['pause', 'resume'], true)) {
+            return $this->tpl->displayJson(['success' => false, 'message' => 'action must be "pause" or "resume".'], 422);
+        }
+
+        $result = $action === 'pause'
+            ? $this->workTrackerService->pauseSession($sessionId, $userId)
+            : $this->workTrackerService->resumeSession($sessionId, $userId);
+
+        return $this->tpl->displayJson($result, $result['success'] ? 200 : 409);
+    }
+
+    /**
      * PATCH /worktracker/api
-     * Stops an active work session.
+     * Stops an active work session (running OR paused).
      *
      * JSON body: { "session_id": 101, "screenshot": "<base64 string>" }
      */
