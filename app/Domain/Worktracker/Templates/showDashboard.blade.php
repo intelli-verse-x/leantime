@@ -12,6 +12,25 @@
     $ist = static fn ($utcValue) => $utcValue
         ? \Carbon\Carbon::parse($utcValue, 'UTC')->setTimezone('Asia/Kolkata')
         : null;
+
+    /**
+     * Active session state — accessed in several places below. A session is
+     * "open" while running OR paused; only the running flavour ticks live.
+     */
+    $isPausedActive  = $activeSession && ($activeSession->status ?? '') === 'paused';
+    $isRunningActive = $activeSession && ($activeSession->status ?? '') === 'running';
+
+    /**
+     * Format cumulative paused_seconds as "H:MM" (or just "—" if zero) so the
+     * history table reads like an honest break ledger to managers.
+     */
+    $fmtPaused = static function ($seconds) {
+        $s = (int) $seconds;
+        if ($s <= 0) return '—';
+        $h = intdiv($s, 3600);
+        $m = intdiv($s % 3600, 60);
+        return $h > 0 ? sprintf('%dh %02dm', $h, $m) : sprintf('%dm', $m);
+    };
 @endphp
 
 <x-global::pageheader :icon="'fa fa-clock-o'">
@@ -46,10 +65,15 @@
             <div class="col-md-3 col-sm-6 col-xs-6">
                 <div class="bigNumberBox">
                     @if ($activeSession)
-                        <h3 class="tw-text-green-600" id="dashboard-elapsed" data-start-seconds="{{ $elapsedSeconds }}">
+                        <h3
+                            class="{{ $isPausedActive ? 'tw-text-yellow-600' : 'tw-text-green-600' }}"
+                            id="dashboard-elapsed"
+                            data-start-seconds="{{ $elapsedSeconds }}"
+                            data-paused="{{ $isPausedActive ? '1' : '0' }}"
+                        >
                             {{ $elapsedFormatted }}
                         </h3>
-                        <p>Current Session</p>
+                        <p>{{ $isPausedActive ? 'Current Session (paused)' : 'Current Session' }}</p>
                     @else
                         <h3>—</h3>
                         <p>No Active Session</p>
@@ -62,13 +86,43 @@
         @if ($activeSession)
         <div class="row tw-mb-m">
             <div class="col-md-12">
-                <div class="tw-p-m tw-rounded tw-border tw-border-green-400 tw-bg-green-50 tw-flex tw-items-center tw-justify-between">
+                <div class="tw-p-m tw-rounded tw-border tw-flex tw-items-center tw-justify-between
+                    {{ $isPausedActive ? 'tw-border-yellow-400 tw-bg-yellow-50' : 'tw-border-green-400 tw-bg-green-50' }}">
                     <div>
-                        <i class="fa fa-circle tw-text-green-500 tw-mr-xs"></i>
-                        <strong>Session running</strong> — started at
-                        {{ $ist($activeSession->start_time)->format('H:i:s') }} IST
+                        @if ($isPausedActive)
+                            <i class="fa fa-pause-circle tw-text-yellow-500 tw-mr-xs"></i>
+                            <strong>Session paused</strong> — started at
+                            {{ $ist($activeSession->start_time)->format('H:i:s') }} IST.
+                            Resume to continue tracking, or Stop to close it.
+                        @else
+                            <i class="fa fa-circle tw-text-green-500 tw-mr-xs"></i>
+                            <strong>Session running</strong> — started at
+                            {{ $ist($activeSession->start_time)->format('H:i:s') }} IST
+                            @if (($activeSession->paused_seconds ?? 0) > 0)
+                                · already paused for {{ $fmtPaused($activeSession->paused_seconds) }} this session
+                            @endif
+                        @endif
                     </div>
                     <div class="tw-flex tw-gap-xs">
+                        @if ($isPausedActive)
+                            <button
+                                class="btn btn-success btn-sm"
+                                id="dashboardResumeBtn"
+                                data-session-id="{{ $activeSession->id }}"
+                                title="Resume the timer and continue tracking"
+                            >
+                                <i class="fa fa-play-circle tw-mr-xs"></i> Resume Session
+                            </button>
+                        @else
+                            <button
+                                class="btn btn-warning btn-sm"
+                                id="dashboardPauseBtn"
+                                data-session-id="{{ $activeSession->id }}"
+                                title="Pause the timer — break time will be excluded from your total"
+                            >
+                                <i class="fa fa-pause-circle tw-mr-xs"></i> Pause Session
+                            </button>
+                        @endif
                         <button
                             class="btn btn-danger btn-sm"
                             id="dashboardStopBtn"
@@ -125,6 +179,7 @@
                                         <th>Start Time (IST)</th>
                                         <th>End Time (IST)</th>
                                         <th>Duration</th>
+                                        <th title="Cumulative break time excluded from Duration">Paused</th>
                                         <th>Status</th>
                                         <th>Start Screenshot</th>
                                         <th>End Screenshot</th>
@@ -139,14 +194,19 @@
                                         <td>
                                             @if ($session['end_time'])
                                                 {{ $ist($session['end_time'])->format('H:i:s') }}
+                                            @elseif ($session['status'] === 'paused')
+                                                <span class="tw-text-yellow-600">Paused…</span>
                                             @else
                                                 <span class="tw-text-green-600">Running…</span>
                                             @endif
                                         </td>
                                         <td>{{ $session['duration_formatted'] }}</td>
+                                        <td>{{ $fmtPaused($session['paused_seconds'] ?? 0) }}</td>
                                         <td>
                                             @if ($session['status'] === 'running')
                                                 <span class="tag tw-bg-green-100 tw-text-green-800">Running</span>
+                                            @elseif ($session['status'] === 'paused')
+                                                <span class="tag tw-bg-yellow-100 tw-text-yellow-800">Paused</span>
                                             @else
                                                 <span class="tag">Completed</span>
                                             @endif
@@ -188,9 +248,11 @@
 (function () {
     'use strict';
 
-    // Live elapsed ticker for the dashboard stats box
+    // Live elapsed ticker for the dashboard stats box.
+    // When the session is paused (data-paused="1") the rendered value is the
+    // frozen active duration and we deliberately skip the ticker.
     var el = document.getElementById('dashboard-elapsed');
-    if (el) {
+    if (el && el.dataset.paused !== '1') {
         var secs = parseInt(el.dataset.startSeconds, 10) || 0;
         setInterval(function () { secs++; el.textContent = fmt(secs); }, 1000);
     }
@@ -305,6 +367,45 @@
             }
             captureScreenshot(function (b64) { sendStop(b64); });
         });
+    }
+
+    // Pause / Resume buttons on the active session banner
+    function callPauseResume(btn, action) {
+        var sessionId = parseInt(btn.dataset.sessionId, 10);
+        var originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin tw-mr-xs"></i> ' +
+            (action === 'pause' ? 'Pausing…' : 'Resuming…');
+
+        fetch('{{ BASE_URL }}/worktracker/api', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body: JSON.stringify({ action: action, session_id: sessionId })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || ('Could not ' + action + ' session.'));
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        })
+        .catch(function () {
+            alert('Network error. Please try again.');
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        });
+    }
+
+    var pauseBtn = document.getElementById('dashboardPauseBtn');
+    if (pauseBtn) {
+        pauseBtn.addEventListener('click', function () { callPauseResume(pauseBtn, 'pause'); });
+    }
+    var resumeBtn = document.getElementById('dashboardResumeBtn');
+    if (resumeBtn) {
+        resumeBtn.addEventListener('click', function () { callPauseResume(resumeBtn, 'resume'); });
     }
 
     // Cancel-orphan button (closes the session WITHOUT an end screenshot)
