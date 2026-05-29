@@ -23,6 +23,8 @@ class ShowAll extends Controller
 
     private TicketService $ticketService;
 
+    private UserRepository $userRepository;
+
     /**
      * init - initialize private variables
      */
@@ -30,12 +32,14 @@ class ShowAll extends Controller
         ProjectService $projectService,
         TimesheetService $timesheetsService,
         ClientService $clientService,
-        TicketService $ticketService
+        TicketService $ticketService,
+        UserRepository $userRepository
     ): void {
         $this->timesheetsService = $timesheetsService;
         $this->projectService = $projectService;
         $this->clientService = $clientService;
         $this->ticketService = $ticketService;
+        $this->userRepository = $userRepository;
     }
 
     /**
@@ -46,8 +50,14 @@ class ShowAll extends Controller
      */
     public function run(): Response
     {
-        // Only admins and employees
-        Auth::authOrRedirect([Roles::$owner, Roles::$admin, Roles::$manager, Roles::$teamlead], true);
+        $currentUserId = (int) session('userdata.id');
+        $hasGlobalTimesheetAccess = Auth::userIsAtLeast(Roles::$teamlead, true);
+        $directReports = $this->userRepository->getDirectReports($currentUserId);
+        $allowedUserIds = $hasGlobalTimesheetAccess ? null : array_column($directReports, 'id');
+
+        if (! $hasGlobalTimesheetAccess && $allowedUserIds === []) {
+            return $this->tpl->displayPartial('errors.error403', responseCode: 403);
+        }
 
         session(['lastPage' => BASE_URL.'/timesheets/showAll']);
 
@@ -68,7 +78,7 @@ class ShowAll extends Controller
                 $paid = $_POST['paid'];
             }
 
-            $this->timesheetsService->updateInvoices($invEmpl, $invComp, $paid);
+            $this->timesheetsService->updateInvoices($invEmpl, $invComp, $paid, $allowedUserIds);
         }
 
         $invCompCheck = '0';
@@ -79,8 +89,12 @@ class ShowAll extends Controller
             $kind = strip_tags($_POST['kind']);
         }
 
-        if (! empty($_POST['userId'])) {
-            $userId = intval(strip_tags($_POST['userId']));
+        if (! empty($_POST['userId']) && $_POST['userId'] !== 'all') {
+            $userId = (int) strip_tags($_POST['userId']);
+        }
+
+        if ($allowedUserIds !== null && $userId !== null && ! in_array($userId, $allowedUserIds, true)) {
+            $userId = null;
         }
 
         $dateFrom = dtHelper()->userNow()->startOfWeek(CarbonInterface::MONDAY)->setToDbTimezone();
@@ -149,11 +163,13 @@ class ShowAll extends Controller
             }
         }
 
-        $user = app()->make(UserRepository::class);
-        $employees = $user->getAll();
+        $employees = $hasGlobalTimesheetAccess ? $this->userRepository->getAll() : $directReports;
 
         $this->tpl->assign('employeeFilter', $userId);
         $this->tpl->assign('employees', $employees);
+        $this->tpl->assign('canManageTimesheets', $hasGlobalTimesheetAccess || $allowedUserIds !== []);
+        $this->tpl->assign('canShowTeamTimesheets', $hasGlobalTimesheetAccess || $allowedUserIds !== []);
+        $this->tpl->assign('timesheetSection', 'team');
         $this->tpl->assign('dateFrom', $dateFrom);
         $this->tpl->assign('dateTo', $dateTo);
 
@@ -178,7 +194,8 @@ class ShowAll extends Controller
             $invCompCheck,
             ($projectMismatch ? '-1' : ($projectFilter == -1 ? '-1' : ($ticketFilter ?: '-1'))),
             $paidCheck,
-            $clientId
+            $clientId,
+            $allowedUserIds
         ));
 
         return $this->tpl->display('timesheets.showAll');

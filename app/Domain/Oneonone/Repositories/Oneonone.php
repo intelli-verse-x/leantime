@@ -92,7 +92,11 @@ class Oneonone
                 'e.jobTitle as employeeJobTitle'
             )
             ->leftJoin('zp_user as e', 'e.id', '=', 's.employeeId')
-            ->where('s.managerId', $managerId)
+            ->where(function ($query) use ($managerId) {
+                $query->where('s.managerId', $managerId)
+                      ->orWhere('e.managerId', $managerId)
+                      ->orWhere('e.coManagerId', $managerId);
+            })
             ->orderByDesc('s.meetingDate')
             ->get();
 

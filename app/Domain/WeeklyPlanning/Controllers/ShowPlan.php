@@ -44,8 +44,11 @@ class ShowPlan extends Controller
 
         $userId = (int) session('userdata.id');
 
-        // Allow only the employee, their team lead, and admins/managers to view
-        if ($plan['employeeId'] !== $userId && $plan['teamLeadId'] !== $userId
+        $isPlanManager = $plan['teamLeadId'] === $userId
+            || $this->weeklyPlanningService->isManagerForEmployee($userId, (int) ($plan['employeeId'] ?? 0));
+
+        // Allow only the employee, their team lead/co-manager, and admins/managers to view
+        if ($plan['employeeId'] !== $userId && ! $isPlanManager
             && ! Auth::userIsAtLeast(Roles::$manager)) {
             return $this->tpl->displayPartial('errors.error403', responseCode: 403);
         }
@@ -62,7 +65,7 @@ class ShowPlan extends Controller
         $this->tpl->assign('feedbackTypes', $this->weeklyPlanningService->feedbackTypes);
         $this->tpl->assign('reasonRequiredStatuses', $this->weeklyPlanningService->reasonRequiredStatuses);
         $this->tpl->assign('currentUserId', $userId);
-        $this->tpl->assign('isTeamLead', $plan['teamLeadId'] === $userId || Auth::userIsAtLeast(Roles::$manager));
+        $this->tpl->assign('isTeamLead', $isPlanManager || Auth::userIsAtLeast(Roles::$manager));
 
         return $this->tpl->display('weeklyplanning.showPlan');
     }

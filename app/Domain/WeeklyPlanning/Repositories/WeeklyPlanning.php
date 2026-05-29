@@ -116,7 +116,11 @@ class WeeklyPlanning
                 'e.profileId as employeeProfileId',
             )
             ->leftJoin('zp_user as e', 'e.id', '=', 'p.employeeId')
-            ->where('p.teamLeadId', $teamLeadId)
+            ->where(function ($q) use ($teamLeadId) {
+                $q->where('p.teamLeadId', $teamLeadId)
+                    ->orWhere('e.managerId', $teamLeadId)
+                    ->orWhere('e.coManagerId', $teamLeadId);
+            })
             ->orderByDesc('p.weekStart');
 
         if ($month !== null) {
@@ -133,12 +137,17 @@ class WeeklyPlanning
      */
     public function getMonthsForTeamLead(int $teamLeadId): array
     {
-        return $this->db->table('zp_weekly_plans')
-            ->where('teamLeadId', $teamLeadId)
-            ->whereNotNull('month')
+        return $this->db->table('zp_weekly_plans as p')
+            ->leftJoin('zp_user as e', 'e.id', '=', 'p.employeeId')
+            ->where(function ($q) use ($teamLeadId) {
+                $q->where('p.teamLeadId', $teamLeadId)
+                    ->orWhere('e.managerId', $teamLeadId)
+                    ->orWhere('e.coManagerId', $teamLeadId);
+            })
+            ->whereNotNull('p.month')
             ->distinct()
-            ->orderByDesc('weekStart')
-            ->pluck('month')
+            ->orderByDesc('p.weekStart')
+            ->pluck('p.month')
             ->toArray();
     }
 
@@ -386,7 +395,7 @@ class WeeklyPlanning
     }
 
     /**
-     * Get all team members (editor+) whose managerId matches the team lead.
+     * Get all team members (editor+) whose managerId or coManagerId matches the team lead.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -394,7 +403,10 @@ class WeeklyPlanning
     {
         $rows = $this->db->table('zp_user')
             ->select('id', 'firstname', 'lastname', 'profileId', 'jobTitle', 'role')
-            ->where('managerId', $teamLeadId)
+            ->where(function ($q) use ($teamLeadId) {
+                $q->where('managerId', $teamLeadId)
+                    ->orWhere('coManagerId', $teamLeadId);
+            })
             ->where('status', 'A')
             ->orderBy('firstname')
             ->get();
@@ -423,7 +435,11 @@ class WeeklyPlanning
             ->join('zp_weekly_plans as p', 'p.id', '=', 'i.weeklyPlanId')
             ->leftJoin('zp_user as e', 'e.id', '=', 'p.employeeId')
             ->leftJoin('zp_tickets as t', 't.id', '=', 'i.ticketId')
-            ->where('p.teamLeadId', $teamLeadId)
+            ->where(function ($q) use ($teamLeadId) {
+                $q->where('p.teamLeadId', $teamLeadId)
+                    ->orWhere('e.managerId', $teamLeadId)
+                    ->orWhere('e.coManagerId', $teamLeadId);
+            })
             ->whereIn('i.status', ['blocked', 'not_completed'])
             ->orderByDesc('p.weekStart')
             ->orderBy('e.firstname')
@@ -454,7 +470,11 @@ class WeeklyPlanning
             ->join('zp_weekly_plans as p', 'p.id', '=', 'c.weeklyPlanId')
             ->leftJoin('zp_user as e', 'e.id', '=', 'p.employeeId')
             ->leftJoin('zp_user as u', 'u.id', '=', 'c.ownerId')
-            ->where('p.teamLeadId', $teamLeadId)
+            ->where(function ($q) use ($teamLeadId) {
+                $q->where('p.teamLeadId', $teamLeadId)
+                    ->orWhere('e.managerId', $teamLeadId)
+                    ->orWhere('e.coManagerId', $teamLeadId);
+            })
             ->orderBy('c.deadline');
 
         if ($openOnly) {

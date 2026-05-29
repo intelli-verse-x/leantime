@@ -4,6 +4,7 @@ defined('RESTRICTED') or exit('Restricted access');
 foreach ($__data as $var => $val) {
     $$var = $val; // necessary for blade refactor
 }
+$canManageTimesheets = (bool) ($canManageTimesheets ?? false);
 ?>
 <script type="text/javascript">
     function filterProjectsByClient() {
@@ -95,7 +96,7 @@ foreach ($__data as $var => $val) {
 
         leantime.timesheetsController.initTimesheetsTable();
 
-        <?php if ($login::userIsAtLeast($roles::$manager)) { ?>
+        <?php if ($canManageTimesheets) { ?>
             leantime.timesheetsController.initEditTimeModal();
             leantime.timesheetsController.initDelTimeModal();
         <?php } ?>
@@ -116,6 +117,8 @@ foreach ($__data as $var => $val) {
 
 <div class="maincontent">
     <div class="maincontentinner">
+        <?php include __DIR__.'/partials/timesheetSections.inc.php'; ?>
+
         <form action="<?php echo BASE_URL ?>/timesheets/showAll" method="post" id="form" name="form">
 
             <div class="pull-right">
@@ -290,14 +293,25 @@ if ($tpl->get('paid') == '1') {
 
                 <?php
 
-                $sum = 0;
+$sum = 0;
 $billableSum = 0;
+$projectService = app()->make(\Leantime\Domain\Projects\Services\Projects::class);
+$userRepo = app()->make(\Leantime\Domain\Users\Repositories\Users::class);
+$currentUserId = (int) session('userdata.id');
 
 foreach ($tpl->get('allTimesheets') as $row) {
-    $sum = $sum + $row['hours']; ?>
+    $sum = $sum + $row['hours'];
+
+    $isOwner = (int) $row['userId'] === $currentUserId;
+    $isManager = $login::userIsAtLeast($roles::$manager, true);
+    $isPeopleManager = $userRepo->isManagerForUser($currentUserId, (int) $row['userId']);
+    $projectRoleNum = $projectService->getProjectRole($currentUserId, $row['projectId']);
+    $isProjectTL = ($projectRoleNum !== '' && (int) $projectRoleNum >= 25);
+    $canManageTime = $isManager || $isPeopleManager || $isProjectTL;
+    ?>
                     <tr>
                         <td data-order="<?= $tpl->e($row['id']); ?>">
-                                <?php if ($login::userIsAtLeast($roles::$manager)) { ?>
+                                <?php if ($canManageTime || $isOwner) { ?>
                                 <a href="<?= BASE_URL?>/timesheets/editTime/<?= $row['id']?>" class="editTimeModal">#<?= $row['id'].' - '.$tpl->__('label.edit'); ?> </a>
                                 <a href="<?= BASE_URL?>/timesheets/delTime/<?= $row['id']?>" class="delete delTimeModal" style="margin-left:6px;"><i class="fa fa-trash"></i> <?= $tpl->__('links.delete'); ?></a>
                                 <?php } else { ?>
@@ -328,7 +342,7 @@ foreach ($tpl->get('allTimesheets') as $row) {
                         }?>"><?php if ($row['invoicedEmpl'] == '1') {
                             ?> <?php echo format($row['invoicedEmplDate'])->date(); ?>
                                         <?php } else { ?>
-                                            <?php if ($login::userIsAtLeast($roles::$manager)) { ?>
+                                            <?php if ($canManageTime) { ?>
                                 <input type="checkbox" name="invoicedEmpl[]" class="invoicedEmpl"
                             value="<?php echo $row['id']; ?>" /> <?php
                                             } ?><?php
@@ -340,7 +354,7 @@ foreach ($tpl->get('allTimesheets') as $row) {
                             <?php if ($row['invoicedComp'] == '1') {?>
                                 <?php echo format($row['invoicedCompDate'])->date(); ?>
                             <?php } else { ?>
-                                <?php if ($login::userIsAtLeast($roles::$manager)) { ?>
+                                <?php if ($canManageTime) { ?>
                                 <input type="checkbox" name="invoicedComp[]" class="invoicedComp" value="<?php echo $row['id']; ?>" />
                                 <?php } ?>
                             <?php } ?>
@@ -352,7 +366,7 @@ foreach ($tpl->get('allTimesheets') as $row) {
                             <?php if ($row['paid'] == '1') {?>
                                 <?php echo format($row['paidDate'])->date(); ?>
                             <?php } else { ?>
-                                <?php if ($login::userIsAtLeast($roles::$manager)) { ?>
+                                <?php if ($canManageTime) { ?>
                                     <input type="checkbox" name="paid[]" class="paid" value="<?php echo $row['id']; ?>" />
                                 <?php } ?>
                             <?php } ?>
@@ -366,21 +380,21 @@ foreach ($tpl->get('allTimesheets') as $row) {
                         <td colspan="10"><strong><?php echo $sum; ?></strong></td>
 
                         <td>
-                            <?php if ($login::userIsAtLeast($roles::$manager)) { ?>
+                            <?php if ($canManageTimesheets) { ?>
                             <input type="submit" class="button" value="<?php echo $tpl->__('buttons.save'); ?>" name="saveInvoice" />
                             <?php } ?>
                         </td>
                         <td>
-                            <?php if ($login::userIsAtLeast($roles::$manager)) { ?>
+                            <?php if ($canManageTimesheets) { ?>
                             <input type="checkbox" id="checkAllEmpl" style="vertical-align: baseline;"/> <?php echo $tpl->__('label.select_all')?></td>
                             <?php } ?>
                         <td>
-                            <?php if ($login::userIsAtLeast($roles::$manager)) { ?>
+                            <?php if ($canManageTimesheets) { ?>
                             <input type="checkbox"  id="checkAllComp" style="vertical-align: baseline;"/> <?php echo $tpl->__('label.select_all')?>
                             <?php } ?>
                         </td>
                         <td>
-                            <?php if ($login::userIsAtLeast($roles::$manager)) { ?>
+                            <?php if ($canManageTimesheets) { ?>
                                 <input type="checkbox"  id="checkAllPaid" style="vertical-align: baseline;"/> <?php echo $tpl->__('label.select_all')?>
                             <?php } ?>
                         </td>

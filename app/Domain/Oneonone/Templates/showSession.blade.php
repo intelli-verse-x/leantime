@@ -5,7 +5,6 @@
 @php
     $employeeName = trim(($session['employeeFirstname'] ?? '') . ' ' . ($session['employeeLastname'] ?? ''));
     $managerName = trim(($session['managerFirstname'] ?? '') . ' ' . ($session['managerLastname'] ?? ''));
-    $isManager = (int)($session['managerId'] ?? 0) === (int)session('userdata.id');
 @endphp
 
 <x-global::pageheader :icon="'fa fa-handshake'">

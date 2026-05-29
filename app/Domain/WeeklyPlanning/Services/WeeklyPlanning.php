@@ -10,6 +10,7 @@ use Leantime\Domain\Auth\Services\Auth;
 use Leantime\Domain\Notifications\Services\Notifications as NotificationsService;
 use Leantime\Domain\Oneonone\Services\Oneonone as OneononeService;
 use Leantime\Domain\Tickets\Repositories\Tickets as TicketsRepo;
+use Leantime\Domain\Users\Repositories\Users as UserRepository;
 use Leantime\Domain\WeeklyPlanning\Models\WeeklyPlan;
 use Leantime\Domain\WeeklyPlanning\Models\WeeklyPlanCommitment;
 use Leantime\Domain\WeeklyPlanning\Models\WeeklyPlanFeedback;
@@ -48,6 +49,7 @@ class WeeklyPlanning
         private NotificationsService $notificationsService,
         private OneononeService $oneononeService,
         private TicketsRepo $ticketsRepo,
+        private UserRepository $userRepo,
     ) {}
 
     // -------------------------------------------------------------------------
@@ -550,6 +552,16 @@ class WeeklyPlanning
     public function getTeamMembers(int $teamLeadId): array
     {
         return $this->repo->getTeamMembers($teamLeadId);
+    }
+
+    /**
+     * Whether a user supervises an employee as manager or co-manager.
+     *
+     * @api
+     */
+    public function isManagerForEmployee(int $managerId, int $employeeId): bool
+    {
+        return $this->userRepo->isManagerForUser($managerId, $employeeId);
     }
 
     /**

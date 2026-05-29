@@ -304,7 +304,7 @@ class Timesheets
     /**
      * @api
      */
-    public function getAll(CarbonInterface $dateFrom, CarbonInterface $dateTo, int $projectId = -1, string $kind = 'all', ?int $userId = null, string $invEmpl = '-1', string $invComp = '-1', string $ticketFilter = '-1', string $paid = '-1', string $clientId = '-1'): array|false
+    public function getAll(CarbonInterface $dateFrom, CarbonInterface $dateTo, int $projectId = -1, string $kind = 'all', ?int $userId = null, string $invEmpl = '-1', string $invComp = '-1', string $ticketFilter = '-1', string $paid = '-1', string $clientId = '-1', ?array $allowedUserIds = null): array|false
     {
         return $this->timesheetsRepo->getAll(
             id: $projectId,
@@ -316,7 +316,8 @@ class Timesheets
             invComp: $invComp,
             paid: $paid,
             clientId: $clientId,
-            ticketFilter: $ticketFilter
+            ticketFilter: $ticketFilter,
+            allowedUserIds: $allowedUserIds
         );
     }
 
@@ -462,9 +463,9 @@ class Timesheets
     /**
      * @api
      */
-    public function updateInvoices(array $invEmpl, array $invComp = [], array $paid = []): bool
+    public function updateInvoices(array $invEmpl, array $invComp = [], array $paid = [], ?array $allowedUserIds = null): bool
     {
-        return $this->timesheetsRepo->updateInvoices($invEmpl, $invComp, $paid);
+        return $this->timesheetsRepo->updateInvoices($invEmpl, $invComp, $paid, $allowedUserIds);
     }
 
     /**

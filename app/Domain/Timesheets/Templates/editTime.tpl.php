@@ -8,6 +8,7 @@ foreach ($__data as $var => $val) {
     $$var = $val; // necessary for blade refactor
 }
 $values = $tpl->get('values');
+$canManageTime = (bool) $tpl->get('canManageTime');
 ?>
 <script type="text/javascript">
 
@@ -141,7 +142,7 @@ $values = $tpl->get('values');
 
 
 
-    <?php if ($login::userIsAtLeast($roles::$manager)) { ?>
+    <?php if ($canManageTime) { ?>
         <input style="float:left; margin-right:5px;"
                 type="checkbox" name="invoicedEmpl" id="invoicedEmpl"
             <?php if (isset($values['invoicedEmpl']) === true && $values['invoicedEmpl'] == '1') {
@@ -193,7 +194,6 @@ $values = $tpl->get('values');
         <input type="submit" value="<?php echo $tpl->__('buttons.save'); ?>" name="save" class="button" />
     </p>
 </form>
-
 
 
 

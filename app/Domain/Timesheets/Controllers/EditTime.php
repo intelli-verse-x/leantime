@@ -10,6 +10,7 @@ use Leantime\Domain\Clients\Repositories\Clients as ClientRepository;
 use Leantime\Domain\Projects\Repositories\Projects as ProjectRepository;
 use Leantime\Domain\Tickets\Repositories\Tickets as TicketRepository;
 use Leantime\Domain\Timesheets\Repositories\Timesheets as TimesheetRepository;
+use Leantime\Domain\Users\Repositories\Users as UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 
 class EditTime extends Controller
@@ -21,6 +22,8 @@ class EditTime extends Controller
     private TicketRepository $tickets;
 
     private ClientRepository $clients;
+
+    private UserRepository $users;
 
     // This is the date we get back from the database, when no date has been sat. This is somewhat a hack and should
     // be looked into.
@@ -36,12 +39,14 @@ class EditTime extends Controller
         TimesheetRepository $timesheetsRepo,
         ProjectRepository $projects,
         TicketRepository $tickets,
-        ClientRepository $clients
+        ClientRepository $clients,
+        UserRepository $users
     ) {
         $this->timesheetsRepo = $timesheetsRepo;
         $this->projects = $projects;
         $this->tickets = $tickets;
         $this->clients = $clients;
+        $this->users = $users;
     }
 
     /**
@@ -84,7 +89,18 @@ class EditTime extends Controller
                     'paidDate' => new Carbon($timesheet['paidDate'], 'UTC'),
                 ];
 
-                if (Auth::userIsAtLeast(Roles::$manager) || session('userdata.id') == $values['userId']) {
+                $isManager = Auth::userIsAtLeast(Roles::$manager, true);
+                $currentUserId = (int) session('userdata.id');
+                $isOwner = $currentUserId == $values['userId'];
+                $isPeopleManager = $this->users->isManagerForUser($currentUserId, (int) $values['userId']);
+
+                $projectService = app()->make(\Leantime\Domain\Projects\Services\Projects::class);
+                $projectRoleNum = $projectService->getProjectRole(session('userdata.id'), $values['project']);
+                // 25 is teamlead role key
+                $isProjectTL = ($projectRoleNum !== '' && (int) $projectRoleNum >= 25);
+                $canManageTime = $isManager || $isPeopleManager || $isProjectTL;
+
+                if ($canManageTime || $isOwner) {
                     if (isset($_POST['saveForm']) === true) {
                         if (! empty($_POST['tickets'])) {
                             $values['project'] = (int) $_POST['projects'];
@@ -108,7 +124,7 @@ class EditTime extends Controller
                             $values['description'] = ($_POST['description']);
                         }
 
-                        if (Auth::userIsAtLeast(Roles::$manager)) {
+                        if ($canManageTime) {
                             if (! empty($_POST['invoicedEmpl'])) {
                                 if ($_POST['invoicedEmpl'] == 'on') {
                                     $values['invoicedEmpl'] = 1;
@@ -208,6 +224,7 @@ class EditTime extends Controller
                     }
 
                     $this->tpl->assign('values', $values);
+                    $this->tpl->assign('canManageTime', $canManageTime);
 
                     $this->tpl->assign('info', $info);
                     $this->tpl->assign('allClients', $this->clients->getAll());

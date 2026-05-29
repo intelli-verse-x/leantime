@@ -229,6 +229,24 @@ class Users
         return array_map(fn ($r) => (array) $r, $rows->toArray());
     }
 
+    /**
+     * Whether $managerId supervises $employeeId as either manager or co-manager.
+     */
+    public function isManagerForUser(int $managerId, int $employeeId): bool
+    {
+        if ($managerId <= 0 || $employeeId <= 0) {
+            return false;
+        }
+
+        return $this->connection->table('zp_user')
+            ->where('id', $employeeId)
+            ->where(function ($q) use ($managerId) {
+                $q->where('managerId', $managerId)
+                    ->orWhere('coManagerId', $managerId);
+            })
+            ->exists();
+    }
+
     public function getAllBySource($source): false|array
     {
         $query = $this->connection->table('zp_user')

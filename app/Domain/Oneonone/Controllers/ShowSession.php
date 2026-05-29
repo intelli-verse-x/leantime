@@ -47,6 +47,7 @@ class ShowSession extends Controller
         $this->tpl->assign('sessionStatuses', $this->repo->sessionStatuses);
         $this->tpl->assign('moodValues', $this->repo->moodValues);
         $this->tpl->assign('canEdit', $this->service->canEditSession($session));
+        $this->tpl->assign('isManager', $this->service->isManagerForSession($session));
 
         return $this->tpl->display('oneonone.showSession');
     }

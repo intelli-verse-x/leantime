@@ -197,14 +197,6 @@ $allTickets = $group['items'];
                                      aria-label="<?= isset($emptyColumns[$key]) ? 'Empty column' : htmlspecialchars($statusRow['name']).' column items' ?>"
                                      role="list">
 
-                                    <?php
-                                        $statusId = $key;
-                                $swimlaneKey = $group['value'] ?? $group['id'] ?? null;
-                                $isEmpty = isset($emptyColumns[$key]);
-                                $currentGroupBy = $searchCriteria['groupBy'] ?? null;
-                                include __DIR__.'/partials/quickadd-form.inc.php';
-                                ?>
-
                                     <?php foreach ($allTickets as $row) { ?>
                                         <?php if ($row['status'] == $key) {?>
                                         <div class="ticketBox moveable container priority-border-<?= $row['priority']?>" id="ticket_<?php echo $row['id']; ?>">

@@ -24,6 +24,7 @@ foreach ($__data as $var => $val) {
         <?php
         echo $tpl->displayNotification();
 ?>
+        <?php include __DIR__.'/partials/timesheetSections.inc.php'; ?>
 
         <form action="<?php echo BASE_URL ?>/timesheets/showMyList" method="post" id="form" name="form">
             <div class="filterWrapper tw-relative">

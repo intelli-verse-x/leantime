@@ -7,15 +7,19 @@ use Leantime\Core\Controller\Controller;
 use Leantime\Domain\Auth\Models\Roles;
 use Leantime\Domain\Auth\Services\Auth;
 use Leantime\Domain\Timesheets\Services\Timesheets as TimesheetService;
+use Leantime\Domain\Users\Repositories\Users as UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 
 class ShowMyList extends Controller
 {
     private TimesheetService $timesheetService;
 
-    public function init(TimesheetService $timesheetService): void
+    private UserRepository $userRepository;
+
+    public function init(TimesheetService $timesheetService, UserRepository $userRepository): void
     {
         $this->timesheetService = $timesheetService;
+        $this->userRepository = $userRepository;
         session(['lastPage' => BASE_URL.'/timesheets/showMyList']);
     }
 
@@ -49,6 +53,11 @@ class ShowMyList extends Controller
             $dateTo = dtHelper()->parseUserDateTime($_POST['dateTo'])->setToDbTimezone();
         }
 
+        $hasGlobalTimesheetAccess = Auth::userIsAtLeast(Roles::$teamlead, true);
+        $hasDirectReports = $this->userRepository->getDirectReports((int) session('userdata.id')) !== [];
+
+        $this->tpl->assign('canShowTeamTimesheets', $hasGlobalTimesheetAccess || $hasDirectReports);
+        $this->tpl->assign('timesheetSection', 'my');
         $this->tpl->assign('dateFrom', $dateFrom);
         $this->tpl->assign('dateTo', $dateTo);
         $this->tpl->assign('actKind', $kind);

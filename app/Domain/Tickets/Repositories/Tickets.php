@@ -267,7 +267,7 @@ class Tickets
     /**
      * @throws BindingResolutionException
      */
-    public function getUsersTickets($id, $limit, bool $assignedOnly = false): false|array
+    public function getUsersTickets($id, $limit, bool $assignedOnly = false, bool $assigneeOnly = false): false|array
     {
         $users = app()->make(Users::class);
         $user = $users->getUser($id);
@@ -312,9 +312,13 @@ class Tickets
             })
             ->where('ticket.type', '<>', 'milestone');
 
+        if ($assigneeOnly === true) {
+            $query->where('ticket.editorId', $id);
+        }
+
         // When restricted (e.g. a Developer's timesheet), limit to tickets the user
         // is the assignee of, the creator of, or a collaborator on.
-        if ($assignedOnly === true) {
+        if ($assignedOnly === true && $assigneeOnly === false) {
             $query->where(function ($q) use ($id) {
                 $q->where('ticket.editorId', $id)
                     ->orWhere('ticket.userId', $id)

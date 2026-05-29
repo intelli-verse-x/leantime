@@ -81,8 +81,12 @@ class ShowMy extends Controller
 
         $myTimesheets = $this->timesheetService->getWeeklyTimesheets(-1, $fromDate, session('userdata.id'));
         $existingTicketIds = array_map(fn ($item) => $item['ticketId'], $myTimesheets);
+        $hasGlobalTimesheetAccess = Auth::userIsAtLeast(Roles::$teamlead, true);
+        $hasDirectReports = $this->userRepo->getDirectReports((int) session('userdata.id')) !== [];
 
         $this->tpl->assign('existingTicketIds', $existingTicketIds);
+        $this->tpl->assign('canShowTeamTimesheets', $hasGlobalTimesheetAccess || $hasDirectReports);
+        $this->tpl->assign('timesheetSection', 'my');
         $this->tpl->assign('dateFrom', $fromDate);
         $this->tpl->assign('actKind', $kind);
         $this->tpl->assign('kind', $this->timesheetRepo->kind);
@@ -90,15 +94,10 @@ class ShowMy extends Controller
             userId: session('userdata.id'),
             projectTypes: 'project'
         ));
-        // Developers (editor) may only log time against tickets they're assigned to,
-        // created, or collaborate on. TL+ keep full project visibility.
-        $restrictToAssigned = Auth::userHasRole(Roles::$editor, true)
-            && ! Auth::userIsAtLeast(Roles::$teamlead, true);
-
         $this->tpl->assign('allTickets', $this->tickets->getUsersTickets(
             id: session('userdata.id'),
             limit: -1,
-            assignedOnly: $restrictToAssigned
+            assigneeOnly: true
         ));
         $this->tpl->assign('allTimesheets', $myTimesheets);
 

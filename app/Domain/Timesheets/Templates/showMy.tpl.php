@@ -216,6 +216,7 @@ jQuery(document).ready(function(){
         echo $tpl->displayNotification();
 
 ?>
+        <?php include __DIR__.'/partials/timesheetSections.inc.php'; ?>
 
         <form action="<?php echo BASE_URL ?>/timesheets/showMy" method="post" id="timesheetList">
             <div class="btn-group viewDropDown pull-right">

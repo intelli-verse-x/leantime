@@ -110,8 +110,7 @@ class Feedback extends HtmxController
 
     private function resolveCanEdit(string $type): bool
     {
-        $role = session('userdata.role');
-        $isTeamLead = in_array($role, [Roles::$teamlead, Roles::$manager, Roles::$admin, Roles::$owner], true);
+        $isTeamLead = Auth::userIsAtLeast(Roles::$teamlead, true);
 
         return ($isTeamLead && str_starts_with($type, 'manager_'))
             || (! $isTeamLead && str_starts_with($type, 'employee_'));
@@ -133,9 +132,11 @@ class Feedback extends HtmxController
         }
 
         $uid = (int) session('userdata.id');
+        $employeeId = (int) ($plan['employeeId'] ?? 0);
 
-        return (int) ($plan['employeeId'] ?? 0) === $uid
-            || (int) ($plan['teamLeadId'] ?? 0) === $uid;
+        return $employeeId === $uid
+            || (int) ($plan['teamLeadId'] ?? 0) === $uid
+            || $this->service->isManagerForEmployee($uid, $employeeId);
     }
 
     /** Emit a 403 notification for a denied feedback action. */

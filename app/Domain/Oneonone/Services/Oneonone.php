@@ -47,8 +47,11 @@ class Oneonone
             return true;
         }
 
-        return ((int) ($session['employeeId'] ?? 0)) === $userId
-            || ((int) ($session['managerId'] ?? 0)) === $userId;
+        if (((int) ($session['employeeId'] ?? 0)) === $userId || $this->isManagerForSession($session)) {
+            return true;
+        }
+
+        return false;
     }
 
     /** Whether the current session user may edit this 1:1 session. */
@@ -63,10 +66,31 @@ class Oneonone
             return true;
         }
 
-        // Only the manager who owns the session, or the employee themselves,
-        // may edit content. Other team members cannot.
-        return ((int) ($session['managerId'] ?? 0)) === $userId
-            || ((int) ($session['employeeId'] ?? 0)) === $userId;
+        if (((int) ($session['employeeId'] ?? 0)) === $userId || $this->isManagerForSession($session)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /** Whether the current user is considered the manager for this session. */
+    public function isManagerForSession(array $session): bool
+    {
+        $userId = (int) (session('userdata.id') ?? 0);
+
+        if (((int) ($session['managerId'] ?? 0)) === $userId) {
+            return true;
+        }
+
+        $employeeId = (int) ($session['employeeId'] ?? 0);
+        if ($employeeId > 0) {
+            $employee = $this->userRepo->getUser($employeeId);
+            if ($employee && (((int) ($employee['managerId'] ?? 0)) === $userId || ((int) ($employee['coManagerId'] ?? 0)) === $userId)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // -- Sessions -----------------------------------------------------------
@@ -386,11 +410,8 @@ class Oneonone
         }
 
         if (array_key_exists('notes', $values)) {
-            // Only managers can edit private notes.
-            if (
-                (int) ($session['managerId'] ?? 0) === (int) (session('userdata.id') ?? 0)
-                || Auth::userIsAtLeast(Roles::$admin)
-            ) {
+            // Only managers/co-managers can edit private notes.
+            if (Auth::userIsAtLeast(Roles::$admin) || $this->isManagerForSession($session)) {
                 $update['notes'] = (string) $values['notes'];
             }
         }
@@ -430,12 +451,8 @@ class Oneonone
             return false;
         }
 
-        // Only the owning manager or an admin may delete a session.
-        $userId = (int) (session('userdata.id') ?? 0);
-        if (
-            ! Auth::userIsAtLeast(Roles::$admin)
-            && (int) ($session['managerId'] ?? 0) !== $userId
-        ) {
+        // Only the owning manager, employee's manager/co-manager, or an admin may delete a session.
+        if (! Auth::userIsAtLeast(Roles::$admin) && ! $this->isManagerForSession($session)) {
             return false;
         }
 

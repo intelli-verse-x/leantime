@@ -8,18 +8,22 @@ use Leantime\Core\Controller\Frontcontroller;
 use Leantime\Domain\Auth\Models\Roles;
 use Leantime\Domain\Auth\Services\Auth;
 use Leantime\Domain\Timesheets\Repositories\Timesheets as TimesheetRepository;
+use Leantime\Domain\Users\Repositories\Users as UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 
 class DelTime extends Controller
 {
     private TimesheetRepository $timesheetsRepo;
 
+    private UserRepository $users;
+
     /**
      * init - initialize private variable
      */
-    public function init(TimesheetRepository $timesheetsRepo): void
+    public function init(TimesheetRepository $timesheetsRepo, UserRepository $users): void
     {
         $this->timesheetsRepo = $timesheetsRepo;
+        $this->users = $users;
     }
 
     /**
@@ -41,8 +45,14 @@ class DelTime extends Controller
             }
 
             $isOwner = (int) ($timesheet['userId'] ?? 0) === (int) session('userdata.id');
+            $isManager = Auth::userIsAtLeast(Roles::$manager, true);
+            $isPeopleManager = $this->users->isManagerForUser((int) session('userdata.id'), (int) ($timesheet['userId'] ?? 0));
 
-            if (! $isOwner && ! Auth::userIsAtLeast(Roles::$teamlead, true)) {
+            $projectService = app()->make(\Leantime\Domain\Projects\Services\Projects::class);
+            $projectRoleNum = $projectService->getProjectRole(session('userdata.id'), $timesheet['projectId']);
+            $isProjectTL = ($projectRoleNum !== '' && (int) $projectRoleNum >= 25);
+
+            if (! $isOwner && ! $isManager && ! $isPeopleManager && ! $isProjectTL) {
                 return $this->tpl->displayPartial('errors.error403');
             }
 

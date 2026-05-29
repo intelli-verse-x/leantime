@@ -43,7 +43,7 @@ class Timesheets extends Repository
      *
      * @return array|false An array of timesheets or false if there was an error
      */
-    public function getAll(?int $id, ?string $kind, ?CarbonInterface $dateFrom, ?CarbonInterface $dateTo, ?int $userId, ?string $invEmpl, ?string $invComp, ?string $paid, ?int $clientId, ?int $ticketFilter): array|false
+    public function getAll(?int $id, ?string $kind, ?CarbonInterface $dateFrom, ?CarbonInterface $dateTo, ?int $userId, ?string $invEmpl, ?string $invComp, ?string $paid, ?int $clientId, ?int $ticketFilter, ?array $allowedUserIds = null): array|false
     {
         $query = $this->db->table('zp_timesheets')
             ->select(
@@ -98,6 +98,14 @@ class Timesheets extends Repository
 
         if ($userId != 'all' && $userId != null) {
             $query->where('zp_timesheets.userId', $userId);
+        }
+
+        if ($allowedUserIds !== null) {
+            if ($allowedUserIds === []) {
+                return [];
+            }
+
+            $query->whereIn('zp_timesheets.userId', $allowedUserIds);
         }
 
         if ($invComp == '1') {
@@ -876,14 +884,20 @@ class Timesheets extends Repository
      * @param  array  $paid  IDs of timesheets to mark as paid.
      * @return bool Returns true on success.
      */
-    public function updateInvoices(array $invEmpl, array $invComp = [], array $paid = []): bool
+    public function updateInvoices(array $invEmpl, array $invComp = [], array $paid = [], ?array $allowedUserIds = null): bool
     {
         $now = Carbon::now(session('usersettings.timezone'))->setTimezone('UTC')->format('Y-m-d H:i:s');
         $modified = date('Y-m-d H:i:s');
 
         if (! empty($invEmpl)) {
-            $this->db->table('zp_timesheets')
-                ->whereIn('id', $invEmpl)
+            $query = $this->db->table('zp_timesheets')
+                ->whereIn('id', $invEmpl);
+
+            if ($allowedUserIds !== null) {
+                $query->whereIn('userId', $allowedUserIds);
+            }
+
+            $query
                 ->update([
                     'invoicedEmpl' => 1,
                     'invoicedEmplDate' => $now,
@@ -892,8 +906,14 @@ class Timesheets extends Repository
         }
 
         if (! empty($invComp)) {
-            $this->db->table('zp_timesheets')
-                ->whereIn('id', $invComp)
+            $query = $this->db->table('zp_timesheets')
+                ->whereIn('id', $invComp);
+
+            if ($allowedUserIds !== null) {
+                $query->whereIn('userId', $allowedUserIds);
+            }
+
+            $query
                 ->update([
                     'invoicedComp' => 1,
                     'invoicedCompDate' => $now,
@@ -902,8 +922,14 @@ class Timesheets extends Repository
         }
 
         if (! empty($paid)) {
-            $this->db->table('zp_timesheets')
-                ->whereIn('id', $paid)
+            $query = $this->db->table('zp_timesheets')
+                ->whereIn('id', $paid);
+
+            if ($allowedUserIds !== null) {
+                $query->whereIn('userId', $allowedUserIds);
+            }
+
+            $query
                 ->update([
                     'paid' => 1,
                     'paidDate' => $now,
