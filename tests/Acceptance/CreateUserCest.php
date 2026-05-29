@@ -24,7 +24,7 @@ class CreateUserCest
         $I->waitForElement('#firstname', 120);
         $I->fillField('#firstname', 'John');
         $I->fillField('#lastname', 'Doe');
-        $I->selectOption('#role', 'Read Only');
+        $I->selectOption('#role', 'Administrator');
         $I->selectOption('#client', 'Not assigned to a client');
         $I->fillField('#user', 'john@doe.com');
         $I->fillField('#phone', '1234567890');
@@ -50,6 +50,8 @@ class CreateUserCest
         $I->amOnPage('/users/editUser/1/');
         $I->waitForElement('.pagetitle', 120);
         $I->see('Edit User');
+        $I->scrollTo(['name' => 'jobTitle']);
+        $I->waitForElementVisible(['name' => 'jobTitle'], 30);
         $I->fillField(['name' => 'jobTitle'], 'Testing');
         $I->clickWithRetry('#save');
         $I->waitForElement('.growl', 120);

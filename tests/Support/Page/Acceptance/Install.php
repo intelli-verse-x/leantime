@@ -61,12 +61,30 @@ class Install
     }
 
     /**
-     * Suppress all helper modals for testing
+     * Suppress all helper modals for testing and create a default project
      */
     private function suppressModals(): void
     {
         $userService = $this->app->make(\Leantime\Domain\Users\Services\Users::class);
+        $projectService = $this->app->make(\Leantime\Domain\Projects\Services\Projects::class);
+        
         session(['userdata.id' => 1]);
+
+        // Create a default project for tests
+        $project = $projectService->getProject(1);
+        if (!$project) {
+            $this->app->make(\Leantime\Domain\Projects\Repositories\Projects::class)->addProject([
+                'name' => 'Test Project',
+                'clientId' => 0,
+                'details' => 'Created for testing',
+                'hourBudget' => '100',
+                'dollarBudget' => 0,
+                'psettings' => 'all',
+                'type' => 'project'
+            ]);
+            // Assign user 1 to project 1
+            $this->app->make(\Leantime\Domain\Projects\Repositories\Projects::class)->editUserProjectRelation(1, 1, 1, 'Manager');
+        }
 
         // Suppress all known modals
         $userService->updateUserSettings('modals', 'projectDashboard', true);
