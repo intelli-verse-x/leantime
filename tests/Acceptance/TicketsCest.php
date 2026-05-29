@@ -47,7 +47,7 @@ class TicketsCest
     {
         $I->wantTo('Edit a ticket');
         $ticketId = $I->grabFromDatabase('zp_tickets', 'id', ['headline' => 'Test Ticket']);
-        $I->amOnPage('/tickets/showKanban#/tickets/showTicket/' . $ticketId);
+        $I->amOnPage('/tickets/showKanban#/tickets/showTicket/'.$ticketId);
         // Currently (and only in tests) the editor is not loaded when clicked on less the page is reloaded first.
         $I->reloadPage();
         $I->waitForElementVisible('.main-title-input', 120);

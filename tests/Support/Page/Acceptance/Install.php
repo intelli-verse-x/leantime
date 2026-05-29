@@ -67,12 +67,12 @@ class Install
     {
         $userService = $this->app->make(\Leantime\Domain\Users\Services\Users::class);
         $projectService = $this->app->make(\Leantime\Domain\Projects\Services\Projects::class);
-        
+
         session(['userdata.id' => 1]);
 
         // Create a default project for tests
         $project = $projectService->getProject(1);
-        if (!$project) {
+        if (! $project) {
             $this->app->make(\Leantime\Domain\Projects\Repositories\Projects::class)->addProject([
                 'name' => 'Test Project',
                 'clientId' => 0,
@@ -81,7 +81,7 @@ class Install
                 'dollarBudget' => 0,
                 'psettings' => 'all',
                 'type' => 'project',
-                'assignedUsers' => []
+                'assignedUsers' => [],
             ]);
             // Assign user 1 to project 1
             $this->app->make(\Leantime\Domain\Projects\Repositories\Projects::class)->addProjectRelation(1, 1, '');
