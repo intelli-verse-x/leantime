@@ -107,22 +107,26 @@ run-dev: build-dev
 
 acceptance-test: build-dev
 	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml up --detach --build --remove-orphans
+	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml exec -u root leantime-dev chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache || true
 	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml exec leantime-dev php vendor/bin/codecept clean
 	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml exec leantime-dev php vendor/bin/codecept build
 	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml exec leantime-dev php vendor/bin/codecept run Acceptance --steps
 
 unit-test: build-dev
 	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml up --detach --build --remove-orphans
+	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml exec -u root leantime-dev chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache || true
 	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml exec leantime-dev php vendor/bin/codecept build
 	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml exec leantime-dev php vendor/bin/codecept run Unit --steps
 
 api-test: build-dev
 	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml up --detach --build --remove-orphans
+	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml exec -u root leantime-dev chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache || true
 	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml exec leantime-dev php vendor/bin/codecept build
 	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml exec leantime-dev php vendor/bin/codecept run Api --steps
 
 acceptance-test-ci: build-dev
 	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml up --detach --build --remove-orphans
+	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml exec -u root leantime-dev chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache || true
 	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml exec leantime-dev php vendor/bin/codecept build
 	docker compose --file .dev/docker-compose.yaml --file .dev/docker-compose.tests.yaml exec leantime-dev php vendor/bin/codecept run Acceptance --steps
 

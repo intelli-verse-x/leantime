@@ -30,7 +30,11 @@ class MenuRepositoryTest extends TestCase
         }
 
         // Mock classes
-        $settingsRepo = $this->make(Setting::class);
+        $settingsRepo = $this->make(Setting::class, [
+            'getSetting' => function () {
+                return false;
+            },
+        ]);
         $language = $this->make(Language::class);
         $config = $this->make(Environment::class);
         $ticketService = $this->make(Tickets::class, [
@@ -82,8 +86,8 @@ class MenuRepositoryTest extends TestCase
 
         // Menu structure checks if roles are set in a menu item and will disable a menu item if not allowed to see
         // User executing the test is not logged in, has no session so it being disabled is correct
-        $this->menu->menuStructures[$expected][40]['submenu'][80]['type'] = 'disabled';
-        $this->menu->menuStructures[$expected][30]['submenu'][30]['href'] = '/ideas/showBoards';
+        $this->menu->menuStructures[$expected][50]['type'] = 'disabled';
+        $this->menu->menuStructures[$expected][60]['submenu'][10]['href'] = '/ideas/showBoards';
 
         $this->assertEquals($this->menu->menuStructures[$expected], $defaultStructure, 'Default menu structure does not match the expected structure');
     }
@@ -109,8 +113,8 @@ class MenuRepositoryTest extends TestCase
 
         \Leantime\Core\Events\EventDispatcher::add_filter_listener('leantime.domain.menu.repositories.menu.getMenuStructure.menuStructures.company', function ($menu) {
 
-            if (isset($menu[15]) && isset($menu[15]['submenu'])) {
-                unset($menu[15]['submenu'][20]);
+            if (isset($menu[20])) {
+                unset($menu[20]);
             }
 
             return $menu;
@@ -118,10 +122,7 @@ class MenuRepositoryTest extends TestCase
         }, 10);
 
         $fullMenuStructure = $this->menu->getMenuStructure('company');
-        $this->assertIsArray($fullMenuStructure[15]['submenu']);
-
-        $this->assertFalse(isset($fullMenuStructure[15]['submenu'][20]), 'menu item was not removed');
-
+        $this->assertFalse(isset($fullMenuStructure[20]), 'menu item was not removed');
     }
 
     public function test_inject_new_project_menu_type()
