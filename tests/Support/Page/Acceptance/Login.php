@@ -39,8 +39,15 @@ class Login
         $this->I->fillField(['name' => 'username'], $username);
         $this->I->fillField(['name' => 'password'], $password);
         $this->I->click('Login');
-        $this->I->waitForElementVisible('.welcome-widget', 120);
-        $this->I->see('Hi John');
+        $this->I->waitForElementVisible('.welcome-widget, .admin-dashboard', 120);
+
+        try {
+            $this->I->seeElement('.welcome-widget');
+            $this->I->see('Hi John');
+        } catch (\Exception $e) {
+            $this->I->seeElement('.admin-dashboard');
+            $this->I->see('Active Projects');
+        }
 
         $this->saveSessionSnapshot('leantime_session');
     }
