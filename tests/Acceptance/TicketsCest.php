@@ -36,7 +36,6 @@ class TicketsCest
         $I->clickWithRetry('.saveTicketBtn');
         $I->waitForElement('.growl', 120);
         $I->seeInDatabase('zp_tickets', [
-            'id' => 10,
             'headline' => 'Test Ticket',
             'description like' => '%<p>Test Description</p>%',
         ]);
@@ -47,8 +46,8 @@ class TicketsCest
     public function editTicket(AcceptanceTester $I)
     {
         $I->wantTo('Edit a ticket');
-
-        $I->amOnPage('/tickets/showKanban#/tickets/showTicket/10');
+        $ticketId = $I->grabFromDatabase('zp_tickets', 'id', ['headline' => 'Test Ticket']);
+        $I->amOnPage('/tickets/showKanban#/tickets/showTicket/' . $ticketId);
         // Currently (and only in tests) the editor is not loaded when clicked on less the page is reloaded first.
         $I->reloadPage();
         $I->waitForElementVisible('.main-title-input', 120);
@@ -61,7 +60,6 @@ class TicketsCest
         $I->waitForElement('.growl', 120);
         $I->wait(2);
         $I->seeInDatabase('zp_tickets', [
-            'id' => 10,
             'headline' => 'Test Ticket',
             'description like' => '%Test Description Edited%',
         ]);

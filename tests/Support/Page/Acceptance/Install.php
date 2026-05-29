@@ -80,10 +80,11 @@ class Install
                 'hourBudget' => '100',
                 'dollarBudget' => 0,
                 'psettings' => 'all',
-                'type' => 'project'
+                'type' => 'project',
+                'assignedUsers' => []
             ]);
             // Assign user 1 to project 1
-            $this->app->make(\Leantime\Domain\Projects\Repositories\Projects::class)->editUserProjectRelation(1, 1, 1, 'Manager');
+            $this->app->make(\Leantime\Domain\Projects\Repositories\Projects::class)->addProjectRelation(1, 1, '');
         }
 
         // Suppress all known modals

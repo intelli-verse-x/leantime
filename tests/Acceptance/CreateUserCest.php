@@ -50,9 +50,9 @@ class CreateUserCest
         $I->amOnPage('/users/editUser/1/');
         $I->waitForElement('.pagetitle', 120);
         $I->see('Edit User');
-        $I->scrollTo(['name' => 'jobTitle']);
-        $I->waitForElementVisible(['name' => 'jobTitle'], 30);
-        $I->fillField(['name' => 'jobTitle'], 'Testing');
+        $I->scrollTo('#firstname');
+        $I->waitForElementVisible('#firstname', 30);
+        $I->fillField('#firstname', 'Testing');
         $I->clickWithRetry('#save');
         $I->waitForElement('.growl', 120);
         $I->seeInSource('User edited successfully');

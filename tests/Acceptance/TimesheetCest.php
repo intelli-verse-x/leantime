@@ -206,10 +206,10 @@ class TimesheetCest
     public function logTimeOnTicketTimesheet(AcceptanceTester $I): void
     {
         $I->wantTo('Open ticket and add time');
-
-        $I->amOnPage('/#/tickets/showTicket/10');
-        $I->waitForElementVisible('#ui-id-8');
-        $I->clickWithRetry('#ui-id-8');
+        $ticketId = $I->grabFromDatabase('zp_tickets', 'id', ['headline' => 'Test Ticket']);
+        $I->amOnPage('/#/tickets/showTicket/' . $ticketId);
+        $I->waitForElementVisible('a[href="#timesheet"]');
+        $I->clickWithRetry('a[href="#timesheet"]');
         $I->waitForElementVisible('#hours');
         $I->fillField('#hours', 4);
 
@@ -276,10 +276,9 @@ class TimesheetCest
 
         $I->clickWithRetry('#editTimesheet-1');
         $I->waitForElementVisible('.delete');
-        $I->clickWithRetry('.stdformbutton .delete');
+        $I->clickWithRetry('.delete.editTimeModal');
 
-        $I->wait(5);
-        $I->see('Should the timesheet really be deleted?');
+        $I->waitForText('Should the timesheet really be deleted?', 15);
 
         $I->clickWithRetry('.nyroModalLink .button');
 
