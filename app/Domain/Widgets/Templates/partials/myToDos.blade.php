@@ -58,15 +58,7 @@ return $count;
                 hx-vals='{"projectFilter": "{{ $projectFilter }}"}'>
                 <span class="fa-solid fa-table-columns"></span>
             </button>
-            <button class="btn btn-link btn-round-icon"
-                title="Calendar"
-                aria-label="Calendar"
-                hx-get="{{ BASE_URL }}/hx/widgets/myToDosCalendar/get"
-                hx-target="#yourToDoContainer"
-                hx-swap="outerHTML"
-                hx-indicator=".htmx-indicator">
-                <span class="fa-solid fa-calendar-days"></span>
-            </button>
+
             <button class="btn btn-link btn-round-icon"
                 title="Recently Updated"
                 aria-label="Recently Updated"
