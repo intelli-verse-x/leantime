@@ -30,10 +30,10 @@ class ShowAdmin extends Controller
         //   Employee      → Own sessions only (uses /worktracker/showDashboard)
         Auth::authOrRedirect([Roles::$admin, Roles::$owner], true);
 
-        $page    = max(1, (int) ($_GET['page'] ?? 1));
+        $page = max(1, (int) ($_GET['page'] ?? 1));
         $perPage = 50;
 
-        $data     = $this->workTrackerService->getAdminDashboard($page, $perPage);
+        $data = $this->workTrackerService->getAdminDashboard($page, $perPage);
         $sessions = array_map(function ($row) {
             $row = (array) $row;
             $row['duration_formatted'] = isset($row['total_duration'])
@@ -49,7 +49,7 @@ class ShowAdmin extends Controller
                 'end',
                 $row['end_screenshot'] ?? ''
             );
-            $row['employee_name'] = trim(($row['firstname'] ?? '') . ' ' . ($row['lastname'] ?? ''));
+            $row['employee_name'] = trim(($row['firstname'] ?? '').' '.($row['lastname'] ?? ''));
 
             return $row;
         }, $data['sessions']);

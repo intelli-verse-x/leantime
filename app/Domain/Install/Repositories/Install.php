@@ -2729,9 +2729,9 @@ class Install
                 });
             }
         } catch (\Exception $e) {
-            Log::error('Migration 30505: ' . $e->getMessage());
+            Log::error('Migration 30505: '.$e->getMessage());
 
-            return ['Migration 30505 failed: ' . $e->getMessage()];
+            return ['Migration 30505 failed: '.$e->getMessage()];
         }
 
         return true;
@@ -2753,9 +2753,9 @@ class Install
                 });
             }
         } catch (\Exception $e) {
-            Log::error('Migration 30506: ' . $e->getMessage());
+            Log::error('Migration 30506: '.$e->getMessage());
 
-            return ['Migration 30506 failed: ' . $e->getMessage()];
+            return ['Migration 30506 failed: '.$e->getMessage()];
         }
 
         return true;

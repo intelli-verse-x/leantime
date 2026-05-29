@@ -86,11 +86,11 @@ class NewSession extends Controller
         if ($id === false) {
             $this->tpl->setNotification($this->language->__('notification.oneonone.schedule_failed'), 'error');
 
-            return Frontcontroller::redirect(BASE_URL . '/oneonone/newSession');
+            return Frontcontroller::redirect(BASE_URL.'/oneonone/newSession');
         }
 
         $this->tpl->setNotification($this->language->__('notification.oneonone.scheduled'), 'success');
 
-        return Frontcontroller::redirect(BASE_URL . '/oneonone/showSession/' . $id);
+        return Frontcontroller::redirect(BASE_URL.'/oneonone/showSession/'.$id);
     }
 }

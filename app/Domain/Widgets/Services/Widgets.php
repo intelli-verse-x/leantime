@@ -49,7 +49,7 @@ class Widgets
             'id' => 'welcome',
             'name' => 'widgets.title.welcome',
             'description' => 'widgets.descriptions.welcome',
-            'widgetUrl' => BASE_URL . '/widgets/welcome/get',
+            'widgetUrl' => BASE_URL.'/widgets/welcome/get',
             'gridHeight' => 3,
             'gridWidth' => 12,
             'gridMinHeight' => 3,
@@ -67,7 +67,7 @@ class Widgets
             'id' => 'todos',
             'name' => 'widgets.title.my_todos',
             'description' => 'widgets.descriptions.my_todos',
-            'widgetUrl' => BASE_URL . '/widgets/myToDos/get',
+            'widgetUrl' => BASE_URL.'/widgets/myToDos/get',
             'gridHeight' => 30,
             'gridWidth' => 12,
             'gridMinHeight' => 16,
@@ -91,7 +91,7 @@ class Widgets
             'gridY' => 43,
             'alwaysVisible' => false,
             'noTitle' => false,
-            'widgetUrl' => BASE_URL . '/widgets/myProjects/get',
+            'widgetUrl' => BASE_URL.'/widgets/myProjects/get',
             'fixed' => false,
         ]);
 
@@ -107,7 +107,7 @@ class Widgets
             'gridY' => 61,
             'alwaysVisible' => false,
             'noTitle' => true,
-            'widgetUrl' => BASE_URL . '/widgets/waitingOnMe/get',
+            'widgetUrl' => BASE_URL.'/widgets/waitingOnMe/get',
             'fixed' => false,
         ]);
 

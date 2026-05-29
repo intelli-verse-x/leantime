@@ -156,7 +156,7 @@ class Menu
             $setting = $this->settingsRepo;
             session([
                 'usersettings.submenuToggle' => unserialize(
-                    $setting->getSetting('usersetting.' . session('userdata.id') . '.submenuToggle')
+                    $setting->getSetting('usersetting.'.session('userdata.id').'.submenuToggle')
                 ),
             ]);
         }
@@ -173,7 +173,7 @@ class Menu
         $config = $this->config;
 
         if (! isset($config->enableMenuType) || (isset($config->enableMenuType) && $config->enableMenuType === false)) {
-            return [self::DEFAULT_MENU => $language->__('label.menu_type.' . self::DEFAULT_MENU)];
+            return [self::DEFAULT_MENU => $language->__('label.menu_type.'.self::DEFAULT_MENU)];
         }
 
         $menuTypes = [];
@@ -195,11 +195,11 @@ class Menu
     {
 
         if (session()->exists('usersettings.submenuToggle') && is_array(session('usersettings.submenuToggle')) && $submenu !== false) {
-            session(['usersettings.submenuToggle.' . $submenu => $state]);
+            session(['usersettings.submenuToggle.'.$submenu => $state]);
         }
 
         $setting = $this->settingsRepo;
-        $setting->saveSetting('usersetting.' . session('userdata.id') . '.submenuToggle', serialize(session('usersettings.submenuToggle')));
+        $setting->saveSetting('usersetting.'.session('userdata.id').'.submenuToggle', serialize(session('usersettings.submenuToggle')));
     }
 
     /**
@@ -210,11 +210,11 @@ class Menu
     public function getSubmenuState(string $submenu)
     {
         $setting = $this->settingsRepo;
-        $subStructure = $setting->getSetting('usersetting.' . session('userdata.id') . '.submenuToggle');
+        $subStructure = $setting->getSetting('usersetting.'.session('userdata.id').'.submenuToggle');
 
         session(['usersettings.submenuToggle' => unserialize($subStructure)]);
 
-        return session('usersettings.submenuToggle.' . $submenu) ?? false;
+        return session('usersettings.submenuToggle.'.$submenu) ?? false;
     }
 
     /**
@@ -235,7 +235,7 @@ class Menu
 
             $menuItem['submenu'] = $this->buildMenuStructure($menuItem['submenu'], $filter);
 
-            $filter = $filter . '.' . $menuItem['id'];
+            $filter = $filter.'.'.$menuItem['id'];
 
             return self::dispatch_filter(
                 hook: $filter,
@@ -293,7 +293,7 @@ class Menu
         if ($simpleWorkflowEnabled && $menuType === 'default') {
             $menuStructure = array_filter(
                 $menuStructure,
-                static fn(array $item): bool => ! (isset($item['id']) && $item['id'] === 'advanced')
+                static fn (array $item): bool => ! (isset($item['id']) && $item['id'] === 'advanced')
             );
         }
 
@@ -329,8 +329,8 @@ class Menu
                     if ($element['visual'] == 'always') {
                         $menuStructure[$key]['visual'] = 'open';
                     } else {
-                        $submenuState = session('usersettings.submenuToggle.' . $element['id']) ?? $element['visual'];
-                        session(['usersettings.submenuToggle.' . $element['id'] => $submenuState]);
+                        $submenuState = session('usersettings.submenuToggle.'.$element['id']) ?? $element['visual'];
+                        session(['usersettings.submenuToggle.'.$element['id'] => $submenuState]);
                     }
                     $menuStructure[$key]['visual'] = $submenuState;
 
@@ -348,14 +348,14 @@ class Menu
                                 break;
 
                             default:
-                                exit("Cannot proceed due to invalid submenu element: '" . $subelement['type'] . "'");
+                                exit("Cannot proceed due to invalid submenu element: '".$subelement['type']."'");
                         }
                     }
 
                     break;
 
                 default:
-                    exit("Cannot proceed due to invalid menu element: '" . $element['type'] . "'");
+                    exit("Cannot proceed due to invalid menu element: '".$element['type']."'");
             }
         }
 
@@ -440,7 +440,7 @@ class Menu
     {
         // Cache key includes both route and default since the result depends on both.
         // Different composers may pass different defaults for routes not in the sections map.
-        $cacheKey = $currentRoute . '|' . $default;
+        $cacheKey = $currentRoute.'|'.$default;
         if (isset(self::$sectionMenuTypeCache[$cacheKey])) {
             return self::$sectionMenuTypeCache[$cacheKey];
         }

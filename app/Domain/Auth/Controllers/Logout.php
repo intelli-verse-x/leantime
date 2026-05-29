@@ -20,7 +20,7 @@ class Logout extends Controller
      */
     public function init(AuthService $authService, WorkTrackerService $workTrackerService): void
     {
-        $this->authService        = $authService;
+        $this->authService = $authService;
         $this->workTrackerService = $workTrackerService;
     }
 
@@ -42,7 +42,7 @@ class Logout extends Controller
                 // Never block logout on a WorkTracker hiccup — log and continue.
                 Log::warning('WorkTracker auto-close on logout failed', [
                     'userId' => $userId,
-                    'error'  => $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]);
             }
         }

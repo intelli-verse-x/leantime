@@ -47,11 +47,11 @@ $planWeekEnd = $tpl->get('planWeekEnd');
                         <select id='priority' name='priority' class="">
                             <option value=""><?php echo $tpl->__('label.priority_not_defined'); ?></option>
                             <?php foreach ($tpl->get('priorities') as $priorityKey => $priorityValue) {
-                                echo "<option value='" . $priorityKey . "' ";
+                                echo "<option value='".$priorityKey."' ";
                                 if ($priorityKey == $ticket->priority) {
                                     echo "selected='selected'";
                                 }
-                                echo '>' . $priorityValue . '</option>';
+                                echo '>'.$priorityValue.'</option>';
                             } ?>
                         </select>
                     </div>
@@ -64,11 +64,11 @@ $planWeekEnd = $tpl->get('planWeekEnd');
                         <select id='storypoints' name='storypoints' class="">
                             <option value=""><?php echo $tpl->__('label.effort_not_defined'); ?></option>
                             <?php foreach ($tpl->get('efforts') as $effortKey => $effortValue) {
-                                echo "<option value='" . $effortKey . "' ";
+                                echo "<option value='".$effortKey."' ";
                                 if ($effortKey == $ticket->storypoints) {
                                     echo "selected='selected'";
                                 }
-                                echo '>' . $effortValue . '</option>';
+                                echo '>'.$effortValue.'</option>';
                             } ?>
                         </select>
                     </div>
@@ -105,7 +105,7 @@ $planWeekEnd = $tpl->get('planWeekEnd');
                                     <?php if (in_array($userRow['id'], $ticket->collaborators ?? [])) {
                                         echo "selected='selected'";
                                     } ?>>
-                                    <?php echo $tpl->escape($userRow['firstname'] . ' ' . $userRow['lastname']); ?>
+                                    <?php echo $tpl->escape($userRow['firstname'].' '.$userRow['lastname']); ?>
                                 </option>
                             <?php } ?>
                         </select>
@@ -245,9 +245,9 @@ $planWeekEnd = $tpl->get('planWeekEnd');
                 <form method="post" action="<?= BASE_URL ?>/tickets/showTicket/<?php echo $ticket->id; ?>" class="formModal">
                     <input type="hidden" name="comment" value="1" />
                     <?php
-                    $tpl->assign('formUrl', '' . BASE_URL . '/tickets/showTicket/' . $ticket->id . '');
-                    $tpl->displaySubmodule('comments-generalComment');
-                    ?>
+                    $tpl->assign('formUrl', ''.BASE_URL.'/tickets/showTicket/'.$ticket->id.'');
+            $tpl->displaySubmodule('comments-generalComment');
+            ?>
                 </form>
             </div>
         <?php } ?>
@@ -275,11 +275,11 @@ $planWeekEnd = $tpl->get('planWeekEnd');
                         <div class="">
                             <select id='type' name='type' class="span11">
                                 <?php foreach ($ticketTypes as $types) {
-                                    echo "<option value='" . strtolower($types) . "' ";
+                                    echo "<option value='".strtolower($types)."' ";
                                     if (strtolower($types) == strtolower($ticket->type ?? '')) {
                                         echo "selected='selected'";
                                     }
-                                    echo '>' . $tpl->__('label.' . strtolower($types)) . '</option>';
+                                    echo '>'.$tpl->__('label.'.strtolower($types)).'</option>';
                                 } ?>
                             </select><br />
                         </div>
@@ -297,7 +297,7 @@ $planWeekEnd = $tpl->get('planWeekEnd');
                                     } elseif (session('currentProject') == $project['id']) {
                                         echo 'selected';
                                     }
-                                    ?>><?= $tpl->escape($project['name']); ?></option>
+                                ?>><?= $tpl->escape($project['name']); ?></option>
                             <?php } ?>
                         </select>
                     </div>
@@ -310,11 +310,11 @@ $planWeekEnd = $tpl->get('planWeekEnd');
                                 <select name="milestoneid" class="span11">
                                     <option value=""><?php echo $tpl->__('label.not_assigned_to_milestone'); ?></option>
                                     <?php foreach ($tpl->get('milestones') as $milestoneRow) { ?>
-                                        <?php echo "<option value='" . $milestoneRow->id . "'";
+                                        <?php echo "<option value='".$milestoneRow->id."'";
                                         if ($ticket->milestoneid == $milestoneRow->id) {
                                             echo " selected='selected' ";
                                         }
-                                        echo '>' . $tpl->escape($milestoneRow->headline) . '</option>'; ?>
+                                        echo '>'.$tpl->escape($milestoneRow->headline).'</option>'; ?>
                                     <?php } ?>
                                 </select>
                             </div>
@@ -336,7 +336,7 @@ $planWeekEnd = $tpl->get('planWeekEnd');
                                                 echo "selected='selected'";
                                             } ?>><?php $tpl->e($sprintRow->name); ?></option>
                                 <?php }
-                                } ?>
+                                    } ?>
                             </select>
                         </div>
                     </div>
@@ -349,15 +349,15 @@ $planWeekEnd = $tpl->get('planWeekEnd');
                                 <select name="dependingTicketId" class="span11">
                                     <option value=""><?php echo $tpl->__('label.not_related'); ?></option>
                                     <?php
-                                    if (is_array($tpl->get('ticketParents'))) {
-                                        foreach ($tpl->get('ticketParents') as $ticketRow) { ?>
-                                            <?php echo "<option value='" . $ticketRow->id . "'";
-                                            if (($ticket->dependingTicketId == $ticketRow->id)) {
-                                                echo " selected='selected' ";
-                                            }
-                                            echo '>' . $tpl->escape($ticketRow->headline) . '</option>'; ?>
+                                        if (is_array($tpl->get('ticketParents'))) {
+                                            foreach ($tpl->get('ticketParents') as $ticketRow) { ?>
+                                            <?php echo "<option value='".$ticketRow->id."'";
+                                                if (($ticket->dependingTicketId == $ticketRow->id)) {
+                                                    echo " selected='selected' ";
+                                                }
+                                                echo '>'.$tpl->escape($ticketRow->headline).'</option>'; ?>
                                     <?php }
-                                    } ?>
+                                            } ?>
                                 </select>
                             </div>
                         </div>

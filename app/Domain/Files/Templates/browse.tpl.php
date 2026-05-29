@@ -28,7 +28,7 @@ $moduleId = session('currentProject');
         <div class="maincontentinner">
             <?php
             echo $tpl->displayNotification();
-            ?>
+?>
             <h5 class="subtitle"><?= $tpl->__('headline.browse_files_headline'); ?></h5>
 
 
@@ -89,7 +89,7 @@ $moduleId = session('currentProject');
                     <ul id='medialist' class='listfile'>
                         <?php foreach ($tpl->get('files') as $file) { ?>
                             <?php
-                            $isLink = strtolower($file['extension'] ?? '') === 'link';
+                $isLink = strtolower($file['extension'] ?? '') === 'link';
                             $linkUrl = $isLink ? $tpl->escape($file['encName']) : '';
                             ?>
                             <li class="file-module-<?php echo $file['moduleId'] ?>">
@@ -128,7 +128,7 @@ $moduleId = session('currentProject');
                                         <?php } else { ?>
                                             <img style='max-height: 50px; max-width: 70px;' src='<?= BASE_URL ?>/dist/images/doc.png' />
                                         <?php } ?>
-                                        <span class="filename"><?php echo substr($file['realName'], 0, 10) . '(...).' . $file['extension'] ?></span>
+                                        <span class="filename"><?php echo substr($file['realName'], 0, 10).'(...).'.$file['extension'] ?></span>
                                     </a>
                                 <?php } ?>
                             </li>

@@ -78,16 +78,16 @@ $ticketTypes = $tpl->get('ticketTypes');
 
                         <?php
                         $editorUsers = $tpl->get('users') ?: [];
-                        $assignedEditorInList = false;
-                        if (! empty($ticket->editorId)) {
-                            foreach ($editorUsers as $u) {
-                                if ((int) $u['id'] === (int) $ticket->editorId) {
-                                    $assignedEditorInList = true;
-                                    break;
-                                }
-                            }
-                        }
-                        ?>
+$assignedEditorInList = false;
+if (! empty($ticket->editorId)) {
+    foreach ($editorUsers as $u) {
+        if ((int) $u['id'] === (int) $ticket->editorId) {
+            $assignedEditorInList = true;
+            break;
+        }
+    }
+}
+?>
                         <select data-placeholder="<?php echo $tpl->__('label.filter_by_user'); ?>" style="width:175px;"
                             name="editorId" id="editorId-select" class="user-select tw-mr-sm">
                             <option value=""><?php echo $tpl->__('label.not_assigned_to_user'); ?></option>

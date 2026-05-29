@@ -208,8 +208,8 @@ $users = $tpl->get('users');
             <div id='clientProjects'>
                 <?php
                 $clientProjectIds = array_column($tpl->get('clientProjects'), 'id');
-                $allProjects = $tpl->get('allProjects');
-                ?>
+$allProjects = $tpl->get('allProjects');
+?>
                 <form method="post" action="<?= BASE_URL ?>/clients/showClient/<?php $tpl->e($values['id']); ?>">
                     <input type="hidden" name="saveProjects" value="1" />
                     <input type="hidden" name="<?= session('formTokenName') ?>" value="<?= session('formTokenValue') ?>" />
@@ -254,8 +254,8 @@ $users = $tpl->get('users');
                 <form method="post" action="<?= BASE_URL ?>/clients/showClient/<?php echo $tpl->e($_GET['id']); ?>#comment">
                     <input type="hidden" name="comment" value="1" />
                     <?php
-                    $tpl->assign('formUrl', BASE_URL . '/clients/showClient/' . $tpl->escape($_GET['id']) . '');
-                    $tpl->displaySubmodule('comments-generalComment') ?>
+                    $tpl->assign('formUrl', BASE_URL.'/clients/showClient/'.$tpl->escape($_GET['id']).'');
+$tpl->displaySubmodule('comments-generalComment') ?>
                 </form>
 
 
@@ -313,7 +313,7 @@ $users = $tpl->get('users');
                     <ul id='medialist' class='listfile'>
                         <?php foreach ($tpl->get('files') as $file) { ?>
                             <?php
-                            $isLink = strtolower($file['extension'] ?? '') === 'link';
+        $isLink = strtolower($file['extension'] ?? '') === 'link';
                             $linkUrl = $isLink ? $tpl->escape($file['encName']) : '';
                             ?>
                             <li class="<?php echo $file['moduleId'] ?>">

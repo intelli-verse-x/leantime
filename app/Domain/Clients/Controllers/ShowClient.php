@@ -50,7 +50,7 @@ class ShowClient extends Controller
         $this->userService = $userService;
 
         if (! session()->exists('lastPage')) {
-            session(['lastPage' => BASE_URL . '/clients/showAll']);
+            session(['lastPage' => BASE_URL.'/clients/showAll']);
         }
     }
 
@@ -118,7 +118,7 @@ class ShowClient extends Controller
                 if ($result === true) {
                     $this->tpl->setNotification($this->language->__('notifications.file_deleted'), 'success', 'clientfile_deleted');
 
-                    return Frontcontroller::redirect(BASE_URL . '/clients/showClient/' . $id . '#files');
+                    return Frontcontroller::redirect(BASE_URL.'/clients/showClient/'.$id.'#files');
                 } else {
                     $msg = is_array($result) ? ($result['msg'] ?? '') : '';
                     $this->tpl->setNotification($msg, 'error');

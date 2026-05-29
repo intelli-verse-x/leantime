@@ -15,8 +15,8 @@ foreach ($__data as $var => $val) {
                 <div class="mediamgr_category">
 
                     <form action='<?= BASE_URL ?>/files/showAll<?php if (isset($_GET['modalPopUp'])) {
-                                                                    echo '?modalPopUp=true';
-                                                                } ?>' method='post' enctype="multipart/form-data" class="fileModal">
+                        echo '?modalPopUp=true';
+                    } ?>' method='post' enctype="multipart/form-data" class="fileModal">
                         <div class="par f-left" style="margin-right: 15px;">
 
                             <div class="tw-mb-s" style="margin-bottom:8px;">
@@ -104,7 +104,7 @@ foreach ($__data as $var => $val) {
                                         <?php } else { ?>
                                             <img style='max-height: 50px; max-width: 70px;' src='<?= BASE_URL ?>/dist/images/thumbs/doc.png' />
                                         <?php } ?>
-                                        <span class="filename"><?php echo substr($file['realName'], 0, 10) . '(...).' . $file['extension'] ?></span>
+                                        <span class="filename"><?php echo substr($file['realName'], 0, 10).'(...).'.$file['extension'] ?></span>
                                     </a>
                                 <?php } ?>
                             </li>

@@ -100,11 +100,11 @@ class Projects
         $milestoneProgress = $this->ticketRepository->getMilestoneBasedProjectProgress($projectId);
         if ($milestoneProgress !== null) {
             return [
-                'percent'               => $milestoneProgress,
+                'percent' => $milestoneProgress,
                 'estimatedCompletionDate' => '',
                 'plannedCompletionDate' => '',
-                'isMilestoneBased'      => true,
-                'progressNote'          => $this->language->__('text.project_progress_from_milestones'),
+                'isMilestoneBased' => true,
+                'progressNote' => $this->language->__('text.project_progress_from_milestones'),
             ];
         }
 
@@ -158,23 +158,23 @@ class Projects
             $estDaysLeftInProject = ceil($percentLeft / $dailyPercent);
         }
 
-        $today->add(new DateInterval('P' . $estDaysLeftInProject . 'D'));
+        $today->add(new DateInterval('P'.$estDaysLeftInProject.'D'));
 
         // Fix this
         $currentDate = new DateTime;
         $inFiveYears = intval($currentDate->format('Y')) + 5;
 
         if (intval($today->format('Y')) >= $inFiveYears) {
-            $completionDate = 'Past ' . $inFiveYears;
+            $completionDate = 'Past '.$inFiveYears;
         } else {
             $completionDate = $today->format($this->language->__('language.dateformat'));
         }
 
         $returnValue = ['percent' => $finalPercent, 'estimatedCompletionDate' => $completionDate, 'plannedCompletionDate' => ''];
         if ($numberOfClosedTickets < 10) {
-            $returnValue['estimatedCompletionDate'] = "<a href='" . BASE_URL . "/tickets/showAll' class='btn btn-primary'><span class=\"fa fa-thumb-tack\"></span> Complete more To-Dos to see that!</a>";
+            $returnValue['estimatedCompletionDate'] = "<a href='".BASE_URL."/tickets/showAll' class='btn btn-primary'><span class=\"fa fa-thumb-tack\"></span> Complete more To-Dos to see that!</a>";
         } elseif ($finalPercent == 100) {
-            $returnValue['estimatedCompletionDate'] = "<a href='" . BASE_URL . "/projects/showAll' class='btn btn-primary'><span class=\"fa fa-suitcase\"></span> This project is complete, onto the next!</a>";
+            $returnValue['estimatedCompletionDate'] = "<a href='".BASE_URL."/projects/showAll' class='btn btn-primary'><span class=\"fa fa-suitcase\"></span> This project is complete, onto the next!</a>";
         }
 
         return $returnValue;
@@ -264,9 +264,9 @@ class Projects
         // Batch-load notification preferences for all candidate users
         $settingKeys = [];
         foreach ($users as $userId) {
-            $settingKeys[] = 'usersettings.' . $userId . '.projectNotificationLevels';
-            $settingKeys[] = 'usersettings.' . $userId . '.projectMutedNotifications'; // legacy format
-            $settingKeys[] = 'usersettings.' . $userId . '.notificationEventTypes';
+            $settingKeys[] = 'usersettings.'.$userId.'.projectNotificationLevels';
+            $settingKeys[] = 'usersettings.'.$userId.'.projectMutedNotifications'; // legacy format
+            $settingKeys[] = 'usersettings.'.$userId.'.notificationEventTypes';
         }
         $settingKeys[] = 'companysettings.defaultNotificationEventTypes';
         $settingKeys[] = 'companysettings.defaultNotificationRelevance';
@@ -288,7 +288,7 @@ class Projects
 
         $emailMessage = $notification->message;
         if ($notification->url !== false) {
-            $emailMessage .= " <a href='" . $notification->url['url'] . "'>" . $notification->url['text'] . '</a>';
+            $emailMessage .= " <a href='".$notification->url['url']."'>".$notification->url['text'].'</a>';
         }
 
         // NEW Queuing messaging system
@@ -351,7 +351,7 @@ class Projects
 
         // Apply same two-layer filtering to in-app notification users
         $allUsersToNotify = $this->getAllUserInfoToNotify($notification->projectId);
-        $allUserIds = array_map(fn($u) => $u['id'], $allUsersToNotify);
+        $allUserIds = array_map(fn ($u) => $u['id'], $allUsersToNotify);
         $filteredIds = $this->filterUsersByProjectRelevance($allUserIds, $notification, $preloadedSettings);
         $filteredIds = $this->filterUsersByEventType($filteredIds, $notification->module, $preloadedSettings);
 
@@ -362,7 +362,7 @@ class Projects
             }
         }
 
-        $filteredUsersToNotify = array_filter($allUsersToNotify, fn($u) => in_array($u['id'], $filteredIds));
+        $filteredUsersToNotify = array_filter($allUsersToNotify, fn ($u) => in_array($u['id'], $filteredIds));
 
         /**
          * This event is fired to notify project users of important updates.
@@ -442,7 +442,7 @@ class Projects
     private function getProjectRelevanceLevel(int $userId, int $projectId, array $preloadedSettings, string $companyDefault): string
     {
         // Check new format first
-        $newKey = 'usersettings.' . $userId . '.projectNotificationLevels';
+        $newKey = 'usersettings.'.$userId.'.projectNotificationLevels';
         $newSetting = $preloadedSettings[$newKey] ?? false;
         if (! empty($newSetting) && $newSetting !== false) {
             $levels = json_decode($newSetting, true);
@@ -455,7 +455,7 @@ class Projects
         }
 
         // Lazy migration: check old muted-projects format
-        $oldKey = 'usersettings.' . $userId . '.projectMutedNotifications';
+        $oldKey = 'usersettings.'.$userId.'.projectMutedNotifications';
         $oldSetting = $preloadedSettings[$oldKey] ?? false;
         if (! empty($oldSetting) && $oldSetting !== false) {
             $mutedIds = json_decode($oldSetting, true);
@@ -544,7 +544,7 @@ class Projects
         }
 
         return array_values(array_filter($userIds, function (int $userId) use ($category, $preloadedSettings, $companyEnabledTypes) {
-            $key = 'usersettings.' . $userId . '.notificationEventTypes';
+            $key = 'usersettings.'.$userId.'.notificationEventTypes';
             $setting = $preloadedSettings[$key] ?? false;
 
             if (! empty($setting) && $setting !== false) {
@@ -982,7 +982,7 @@ class Projects
         session(['currentProject' => 0]);
 
         // If last project setting is set use that
-        $lastProject = $this->settingsRepo->getSetting('usersettings.' . session('userdata.id') . '.lastProject');
+        $lastProject = $this->settingsRepo->getSetting('usersettings.'.session('userdata.id').'.lastProject');
         if (
             ! empty($lastProject)
             && $this->changeCurrentSessionProject($lastProject)
@@ -1058,7 +1058,7 @@ class Projects
                 session(['currentProject' => $projectId]);
 
                 if (mb_strlen($project['name']) > 25) {
-                    session(['currentProjectName' => mb_substr($project['name'], 0, 25) . ' (...)']);
+                    session(['currentProjectName' => mb_substr($project['name'], 0, 25).' (...)']);
                 } else {
                     session(['currentProjectName' => $project['name']]);
                 }
@@ -1092,9 +1092,9 @@ class Projects
                 session(['currentCPCanvas' => '']);
                 session(['currentSMCanvas' => '']);
                 session(['currentRETROSCanvas' => '']);
-                $this->settingsRepo->saveSetting('usersettings.' . session('userdata.id') . '.lastProject', session('currentProject'));
+                $this->settingsRepo->saveSetting('usersettings.'.session('userdata.id').'.lastProject', session('currentProject'));
 
-                $recentProjects = $this->settingsRepo->getSetting('usersettings.' . session('userdata.id') . '.recentProjects');
+                $recentProjects = $this->settingsRepo->getSetting('usersettings.'.session('userdata.id').'.recentProjects');
                 $recent = unserialize($recentProjects);
 
                 if (is_array($recent) === false) {
@@ -1108,7 +1108,7 @@ class Projects
 
                 $recent = array_slice($recent, 0, 20);
 
-                $this->settingsRepo->saveSetting('usersettings.' . session('userdata.id') . '.recentProjects', serialize($recent));
+                $this->settingsRepo->saveSetting('usersettings.'.session('userdata.id').'.recentProjects', serialize($recent));
 
                 session()->forget('projectsettings');
 
@@ -1152,7 +1152,7 @@ class Projects
         session(['currentRETROSCanvas' => '']);
         session()->forget('projectsettings');
 
-        $this->settingsRepo->saveSetting('usersettings.' . session('userdata.id') . '.lastProject', session('currentProject'));
+        $this->settingsRepo->saveSetting('usersettings.'.session('userdata.id').'.lastProject', session('currentProject'));
 
         $this->setCurrentProject();
     }
@@ -1314,10 +1314,10 @@ class Projects
 
         // ProjectSettings
         foreach ($projectSettingsKeys as $key) {
-            $setting = $this->settingsRepo->getSetting('projectsettings.' . $projectId . '.' . $key);
+            $setting = $this->settingsRepo->getSetting('projectsettings.'.$projectId.'.'.$key);
 
             if ($setting !== false) {
-                $this->settingsRepo->saveSetting('projectsettings.' . $newProjectId . '.' . $key, $setting);
+                $this->settingsRepo->saveSetting('projectsettings.'.$newProjectId.'.'.$key, $setting);
             }
         }
 
@@ -1650,7 +1650,7 @@ class Projects
             try {
                 $this->fileService->deleteFile($oldPicture);
             } catch (\Exception $e) {
-                Log::warning('Could not delete old profile picture: ' . $e->getMessage());
+                Log::warning('Could not delete old profile picture: '.$e->getMessage());
                 Log::warning($e);
             }
         }
@@ -1715,19 +1715,19 @@ class Projects
                     'description' => [
                         'title' => 'label.projectDescription',
                         'status' => '',
-                        'link' => BASE_URL . '/projects/showProject/' . session('currentProject') . '',
+                        'link' => BASE_URL.'/projects/showProject/'.session('currentProject').'',
                         'description' => 'checklist.define.tasks.description',
                     ],
                     'defineTeam' => [
                         'title' => 'label.defineTeam',
                         'status' => '',
-                        'link' => BASE_URL . '/projects/showProject/' . session('currentProject') . '#team',
+                        'link' => BASE_URL.'/projects/showProject/'.session('currentProject').'#team',
                         'description' => 'checklist.define.tasks.defineTeam',
                     ],
                     'createBlueprint' => [
                         'title' => 'label.createBlueprint',
                         'status' => '',
-                        'link' => BASE_URL . '/strategy/showBoards/',
+                        'link' => BASE_URL.'/strategy/showBoards/',
                         'description' => 'checklist.define.tasks.createBlueprint',
                     ],
                 ],
@@ -1740,7 +1740,7 @@ class Projects
                     'setGoals' => [
                         'title' => 'label.setGoals',
                         'status' => '',
-                        'link' => BASE_URL . '/goalcanvas/dashboard',
+                        'link' => BASE_URL.'/goalcanvas/dashboard',
                         'description' => 'checklist.goals.tasks.setGoals',
                     ],
                 ],
@@ -1753,7 +1753,7 @@ class Projects
                     'createMilestones' => [
                         'title' => 'label.createMilestones',
                         'status' => '',
-                        'link' => BASE_URL . '/tickets/roadmap',
+                        'link' => BASE_URL.'/tickets/roadmap',
                         'description' => 'checklist.timeline.tasks.createMilestones',
                     ],
 
@@ -1767,13 +1767,13 @@ class Projects
                     'createTasks' => [
                         'title' => 'label.createTasks',
                         'status' => '',
-                        'link' => BASE_URL . '/tickets/showAll',
+                        'link' => BASE_URL.'/tickets/showAll',
                         'description' => 'checklist.implementation.tasks.createTasks ',
                     ],
                     'finish80percent' => [
                         'title' => 'label.finish80percent',
                         'status' => '',
-                        'link' => BASE_URL . '/reports/show',
+                        'link' => BASE_URL.'/reports/show',
                         'description' => 'checklist.implementation.tasks.finish80percent',
                     ],
                 ],
@@ -1829,7 +1829,7 @@ class Projects
             $stepsCompleted = unserialize($stepsCompleted);
         }
 
-        $stepsCompleted = array_map(fn($status) => 'done', $stepsCompleted);
+        $stepsCompleted = array_map(fn ($status) => 'done', $stepsCompleted);
 
         $halfStep = (1 / count($progressSteps)) / 2 * 100;
         $position = 0;
@@ -1882,7 +1882,7 @@ class Projects
         }
 
         // Set the Percentage done of the progress Bar
-        $numberDone = count(array_filter(data_get($progressSteps, '*.stepType'), fn($status) => $status == 'complete'));
+        $numberDone = count(array_filter(data_get($progressSteps, '*.stepType'), fn ($status) => $status == 'complete'));
         $stepsTotal = count($progressSteps);
         $percentDone = $numberDone == $stepsTotal ? 100 : $numberDone / $stepsTotal * 100 + $halfStep;
 
@@ -2136,7 +2136,7 @@ class Projects
 
             if (Str::contains($projects[$key]['name'], $term, ignoreCase: true) || $term == '') {
                 $projects[$key] = $this->prepareDatesForApiResponse($project);
-                $projects[$key]['id'] = $project['id'] . '-' . $project['modified'];
+                $projects[$key]['id'] = $project['id'].'-'.$project['modified'];
 
                 $filteredProjects[] = $projects[$key];
             }
@@ -2179,7 +2179,7 @@ class Projects
 
         foreach ($projects as $key => $project) {
             $projects[$key] = $this->prepareDatesForApiResponse($project);
-            $projects[$key]['id'] = $project['id'] . '-' . $project['modified'];
+            $projects[$key]['id'] = $project['id'].'-'.$project['modified'];
         }
 
         return $projects;

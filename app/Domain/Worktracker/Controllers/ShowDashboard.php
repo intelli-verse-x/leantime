@@ -25,7 +25,7 @@ class ShowDashboard extends Controller
     {
         Auth::authOrRedirect([Roles::$editor, Roles::$manager, Roles::$admin, Roles::$owner], true);
 
-        $userId    = (int) session('userdata.id');
+        $userId = (int) session('userdata.id');
         $dashboard = $this->workTrackerService->getEmployeeDashboard($userId);
 
         $sessions = array_map(function ($row) {

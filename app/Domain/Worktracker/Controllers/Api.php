@@ -64,8 +64,8 @@ class Api extends Controller
     {
         Auth::authOrRedirect([Roles::$editor, Roles::$manager, Roles::$admin, Roles::$owner], true);
 
-        $userId     = (int) session('userdata.id');
-        $body       = $this->jsonBody();
+        $userId = (int) session('userdata.id');
+        $body = $this->jsonBody();
         $screenshot = $body['screenshot'] ?? '';
 
         if (empty($screenshot)) {
@@ -89,9 +89,9 @@ class Api extends Controller
     {
         Auth::authOrRedirect([Roles::$editor, Roles::$manager, Roles::$admin, Roles::$owner], true);
 
-        $userId    = (int) session('userdata.id');
-        $body      = $this->jsonBody();
-        $action    = $body['action'] ?? '';
+        $userId = (int) session('userdata.id');
+        $body = $this->jsonBody();
+        $action = $body['action'] ?? '';
         $sessionId = isset($body['session_id']) ? (int) $body['session_id'] : 0;
 
         if ($sessionId <= 0) {
@@ -118,16 +118,16 @@ class Api extends Controller
     {
         Auth::authOrRedirect([Roles::$editor, Roles::$manager, Roles::$admin, Roles::$owner], true);
 
-        $userId     = (int) session('userdata.id');
-        $body       = $this->jsonBody();
-        $sessionId  = isset($body['session_id']) ? (int) $body['session_id'] : 0;
+        $userId = (int) session('userdata.id');
+        $body = $this->jsonBody();
+        $sessionId = isset($body['session_id']) ? (int) $body['session_id'] : 0;
         $screenshot = $body['screenshot'] ?? '';
 
         if ($sessionId <= 0) {
             return $this->tpl->displayJson(['success' => false, 'message' => 'session_id is required.'], 422);
         }
 
-        $result   = $this->workTrackerService->stopSession($sessionId, $userId, $screenshot);
+        $result = $this->workTrackerService->stopSession($sessionId, $userId, $screenshot);
         $httpCode = $result['success'] ? 200 : 404;
 
         return $this->tpl->displayJson($result, $httpCode);
@@ -143,15 +143,15 @@ class Api extends Controller
     {
         Auth::authOrRedirect([Roles::$editor, Roles::$manager, Roles::$admin, Roles::$owner], true);
 
-        $userId    = (int) session('userdata.id');
-        $body      = $this->jsonBody();
+        $userId = (int) session('userdata.id');
+        $body = $this->jsonBody();
         $sessionId = isset($body['session_id']) ? (int) $body['session_id'] : 0;
 
         if ($sessionId <= 0) {
             return $this->tpl->displayJson(['success' => false, 'message' => 'session_id is required.'], 422);
         }
 
-        $result   = $this->workTrackerService->cancelSession($sessionId, $userId);
+        $result = $this->workTrackerService->cancelSession($sessionId, $userId);
         $httpCode = $result['success'] ? 200 : 404;
 
         return $this->tpl->displayJson($result, $httpCode);

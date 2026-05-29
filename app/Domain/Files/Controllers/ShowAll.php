@@ -55,7 +55,7 @@ class ShowAll extends Controller
             if ($result === true) {
                 $this->tpl->setNotification($this->language->__('notifications.file_deleted'), 'success', 'file_deleted');
 
-                return Frontcontroller::redirect(BASE_URL . '/files/showAll' . ($_GET['modalPopUp'] ?? '') ? '?modalPopUp=true' : '');
+                return Frontcontroller::redirect(BASE_URL.'/files/showAll'.($_GET['modalPopUp'] ?? '') ? '?modalPopUp=true' : '');
             } else {
                 $this->tpl->setNotification($result['msg'], 'success');
             }

@@ -68,7 +68,7 @@ $ticket = $tpl->get('ticket');
             $isLink = strtolower($file['extension'] ?? '') === 'link';
             // For links the URL lives in encName. Escape for safe attribute output.
             $linkUrl = $isLink ? $tpl->escape($file['encName']) : '';
-            $downloadUrl = BASE_URL . '/files/get?module=' . $file['module'] . '&encName=' . $file['encName'] . '&ext=' . $file['extension'] . '&realName=' . $file['realName'];
+            $downloadUrl = BASE_URL.'/files/get?module='.$file['module'].'&encName='.$file['encName'].'&ext='.$file['extension'].'&realName='.$file['realName'];
             ?>
             <li class="<?php echo $file['moduleId'] ?>">
                 <div class="inlineDropDownContainer dropright" style="float:right;">
@@ -124,7 +124,7 @@ $ticket = $tpl->get('ticket');
 <?php if (count($tpl->get('files')) == 0) { ?>
     <div class="text-center">
         <div style='width:33%' class='svgContainer'>
-            <?php echo file_get_contents(ROOT . '/dist/images/svg/undraw_image__folder_re_hgp7.svg'); ?>
+            <?php echo file_get_contents(ROOT.'/dist/images/svg/undraw_image__folder_re_hgp7.svg'); ?>
             <?php echo $tpl->__('text.no_files') ?>
         </div>
     </div>

@@ -156,19 +156,19 @@ class Tickets
                 $labelKey = filter_var($labelKey, FILTER_SANITIZE_NUMBER_INT);
 
                 $statusArray[$labelKey] = [
-                    'name' => $params['label-' . $labelKey] ?? '',
-                    'class' => $params['labelClass-' . $labelKey] ?? 'label-default',
-                    'statusType' => $params['labelType-' . $labelKey] ?? 'NEW',
-                    'kanbanCol' => $params['labelKanbanCol-' . $labelKey] ?? false,
-                    'sortKey' => $params['labelSort-' . $labelKey] ?? 99,
+                    'name' => $params['label-'.$labelKey] ?? '',
+                    'class' => $params['labelClass-'.$labelKey] ?? 'label-default',
+                    'statusType' => $params['labelType-'.$labelKey] ?? 'NEW',
+                    'kanbanCol' => $params['labelKanbanCol-'.$labelKey] ?? false,
+                    'sortKey' => $params['labelSort-'.$labelKey] ?? 99,
                 ];
             }
 
             self::dispatchEvent('statusLabels_updated');
 
-            Cache::forget('projectsettings.' . session('currentProject') . '.ticketlabels');
+            Cache::forget('projectsettings.'.session('currentProject').'.ticketlabels');
 
-            return $this->settingsRepo->saveSetting('projectsettings.' . session('currentProject') . '.ticketlabels', serialize($statusArray));
+            return $this->settingsRepo->saveSetting('projectsettings.'.session('currentProject').'.ticketlabels', serialize($statusArray));
         }
 
         return false;
@@ -424,7 +424,7 @@ class Tickets
             try {
                 $searchCriteria['dateFrom'] = dtHelper()->parseUserDateTime($searchCriteria['dateFrom']);
             } catch (\Exception $e) {
-                Log::warning('Tickets::getAll: Could not parse dateFrom: ' . $searchCriteria['dateFrom'] . '');
+                Log::warning('Tickets::getAll: Could not parse dateFrom: '.$searchCriteria['dateFrom'].'');
             }
         }
 
@@ -432,7 +432,7 @@ class Tickets
             try {
                 $searchCriteria['dateTo'] = dtHelper()->parseUserDateTime($searchCriteria['dateTo']);
             } catch (\Exception $e) {
-                Log::warning('Tickets::getAll: Could not parse dateTo: ' . $searchCriteria['dateTo'] . '');
+                Log::warning('Tickets::getAll: Could not parse dateTo: '.$searchCriteria['dateTo'].'');
             }
         }
 
@@ -698,7 +698,7 @@ class Tickets
                             $priorities = $this->getPriorityLabels();
                             if (isset($priorities[$groupedFieldValue])) {
                                 $label = $priorities[$groupedFieldValue];
-                                $class = 'priority-text-' . $groupedFieldValue;
+                                $class = 'priority-text-'.$groupedFieldValue;
                             } else {
                                 $label = 'No Priority Set';
                                 $sortId = '999'; // Sort "No Priority" after Lowest (5)
@@ -738,14 +738,14 @@ class Tickets
 
                                 $statusLabels = $this->getStatusLabels($milestone->projectId);
                                 $status = $statusLabels[$milestone->status]['name'];
-                                $moreInfo = $this->language->__('label.start') . ': ' . $startDate . ' • ' . $this->language->__('label.end') . ': ' . $endDate . ' • ' . $this->language->__('label.status_lowercase') . ': ' . $status;
+                                $moreInfo = $this->language->__('label.start').': '.$startDate.' • '.$this->language->__('label.end').': '.$endDate.' • '.$this->language->__('label.status_lowercase').': '.$status;
                                 $label = $ticket['milestoneHeadline'];
-                                $sortId = 'a_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $ticket['milestoneHeadline']); // Named milestones sort first alphabetically
+                                $sortId = 'a_'.preg_replace('/[^a-zA-Z0-9_-]/', '_', $ticket['milestoneHeadline']); // Named milestones sort first alphabetically
                             }
 
                             break;
                         case 'editorId':
-                            $label = "<div class='profileImage'><img src='" . BASE_URL . '/api/users?profileImage=' . $ticket['editorId'] . "' /></div> " . $ticket['editorFirstname'] . ' ' . $ticket['editorLastname'];
+                            $label = "<div class='profileImage'><img src='".BASE_URL.'/api/users?profileImage='.$ticket['editorId']."' /></div> ".$ticket['editorFirstname'].' '.$ticket['editorLastname'];
 
                             if ($ticket['editorFirstname'] == '' && $ticket['editorLastname'] == '') {
                                 $label = 'Not Assigned to Anyone';
@@ -760,12 +760,12 @@ class Tickets
                             break;
                         case 'type':
                             $icon = $this->getTypeIcons();
-                            $label = "<i class='fa " . ($icon[strtolower($ticket['type'])] ?? '') . "'></i>" . $ticket['type'];
+                            $label = "<i class='fa ".($icon[strtolower($ticket['type'])] ?? '')."'></i>".$ticket['type'];
                             break;
                         case 'dependingTicketId':
                             if ($ticket['dependingTicketId'] > 0 && ! empty($ticket['parentHeadline'])) {
                                 $label = $ticket['parentHeadline'];
-                                $sortId = 'a_' . strtolower($ticket['parentHeadline']);
+                                $sortId = 'a_'.strtolower($ticket['parentHeadline']);
                             } else {
                                 $label = $this->language->__('label.no_parent_task');
                                 $sortId = 'zzz_no_parent';
@@ -1251,7 +1251,7 @@ class Tickets
                     try {
                         $dbDueDate = dtHelper()->parseDbDateTime($row['dateToFinish']);
                     } catch (\Exception $e) {
-                        Log::warning('Error in DB Due date parsing: ' . $e->getMessage());
+                        Log::warning('Error in DB Due date parsing: '.$e->getMessage());
                         $dbDueDate = dtHelper()->userNow()->addYears();
                     }
 
@@ -1307,7 +1307,7 @@ class Tickets
             }
         }
 
-        uasort($tickets, fn(array $a, array $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
+        uasort($tickets, fn (array $a, array $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
 
         return $tickets;
     }
@@ -1345,7 +1345,7 @@ class Tickets
                     $tickets[$row['projectId']]['tickets'][] = $row;
                 } else {
                     $tickets[$row['projectId']] = [
-                        'labelName' => $row['clientName'] . ' / ' . $row['projectName'],
+                        'labelName' => $row['clientName'].' / '.$row['projectName'],
                         'tickets' => [$row],
                         'groupValue' => $row['projectId'],
                     ];
@@ -1451,9 +1451,9 @@ class Tickets
                     $tickets[$sprint]['tickets'][] = $row;
                 } else {
                     $tickets[$sprint] = [
-                        'labelName' => $row['projectName'] . ' / ' . $sprintName,
+                        'labelName' => $row['projectName'].' / '.$sprintName,
                         'tickets' => [$row],
-                        'groupValue' => $row['sprint'] . '-' . $row['projectId'],
+                        'groupValue' => $row['sprint'].'-'.$row['projectId'],
                     ];
                 }
             }
@@ -1950,7 +1950,7 @@ class Tickets
 
         if ($result > 0) {
             $values['id'] = $result;
-            $actual_link = BASE_URL . '/dashboard/home#/tickets/showTicket/' . $result;
+            $actual_link = BASE_URL.'/dashboard/home#/tickets/showTicket/'.$result;
             $message = sprintf($this->language->__('email_notifications.new_todo_message'), session('userdata.name'), strip_tags($params['headline']));
             $subject = $this->language->__('email_notifications.new_todo_subject');
 
@@ -2114,7 +2114,7 @@ class Tickets
             if ($addTicketResponse !== false) {
                 $values['id'] = $addTicketResponse;
                 $subject = sprintf($this->language->__('email_notifications.new_todo_subject'), $addTicketResponse, strip_tags($values['headline']));
-                $actual_link = BASE_URL . '/dashboard/home#/tickets/showTicket/' . $addTicketResponse;
+                $actual_link = BASE_URL.'/dashboard/home#/tickets/showTicket/'.$addTicketResponse;
                 $message = sprintf($this->language->__('email_notifications.new_todo_message'), session('userdata.name'), strip_tags($values['headline']));
 
                 $notification = new NotificationModel;
@@ -2224,7 +2224,7 @@ class Tickets
         // Update Ticket
         if ($this->ticketRepository->updateTicket($values, $values['id']) === true) {
             $subject = sprintf($this->language->__('email_notifications.todo_update_subject'), $values['id'], strip_tags($values['headline']));
-            $actual_link = BASE_URL . '/dashboard/home#/tickets/showTicket/' . $values['id'];
+            $actual_link = BASE_URL.'/dashboard/home#/tickets/showTicket/'.$values['id'];
             $message = sprintf($this->language->__('email_notifications.todo_update_message'), session('userdata.name'), $values['headline']);
 
             $notification = new NotificationModel;
@@ -2325,7 +2325,7 @@ class Tickets
         if (isset($params['status'])) {
             $ticket = $this->getTicket($id);
             $subject = sprintf($this->language->__('email_notifications.todo_update_subject'), $id, strip_tags($ticket->headline));
-            $actual_link = BASE_URL . '/dashboard/home#/tickets/showTicket/' . $id;
+            $actual_link = BASE_URL.'/dashboard/home#/tickets/showTicket/'.$id;
             $message = sprintf($this->language->__('email_notifications.todo_update_message'), session('userdata.name'), strip_tags($ticket->headline));
 
             $notification = app()->make(NotificationModel::class);
@@ -2648,7 +2648,7 @@ class Tickets
 
             if ($ticket) {
                 $subject = sprintf($this->language->__('email_notifications.todo_update_subject'), $id, strip_tags($ticket->headline));
-                $actual_link = BASE_URL . '/dashboard/home#/tickets/showTicket/' . $id;
+                $actual_link = BASE_URL.'/dashboard/home#/tickets/showTicket/'.$id;
                 $message = sprintf($this->language->__('email_notifications.todo_update_message'), session('userdata.name'), strip_tags($ticket->headline));
 
                 $notification = app()->make(NotificationModel::class);
@@ -2754,7 +2754,7 @@ class Tickets
     public function getLastTicketViewUrl(): mixed
     {
 
-        $url = BASE_URL . '/tickets/showKanban';
+        $url = BASE_URL.'/tickets/showKanban';
 
         if (session()->exists('lastTicketView') && session('lastTicketView') != '') {
             if (session('lastTicketView') === 'kanban' && session()->exists('lastFilterdTicketKanbanView') && session('lastFilterdTicketKanbanView') != '') {
@@ -2778,7 +2778,7 @@ class Tickets
     public function getLastTimelineViewUrl(): mixed
     {
 
-        $url = BASE_URL . '/tickets/roadmap';
+        $url = BASE_URL.'/tickets/roadmap';
 
         if (session()->exists('lastMilestoneView') && session('lastMilestoneView') != '') {
             if (session('lastMilestoneView') === 'table' && session()->exists('lastFilterdMilestoneTableView') && session('lastFilterdMilestoneTableView') != '') {
@@ -3007,7 +3007,7 @@ class Tickets
 
         $searchUrlString = '';
         if ($numOfFilters > 0 || $searchCriteria['groupBy'] != '') {
-            $searchUrlString = '?' . http_build_query($this->getSetFilters($searchCriteria, true));
+            $searchUrlString = '?'.http_build_query($this->getSetFilters($searchCriteria, true));
         }
 
         $allTickets = $this->enrichGroupedTicketsWithCollaborators($allTickets);
@@ -3073,7 +3073,7 @@ class Tickets
                 if ($editorId > 0) {
                     $collaboratorIds = array_values(array_filter(
                         $collaboratorIds,
-                        fn($userId) => (int) $userId !== $editorId
+                        fn ($userId) => (int) $userId !== $editorId
                     ));
                 }
 
@@ -3423,7 +3423,7 @@ class Tickets
                 }
 
             case 'project':
-                return $ticket['clientName'] . ' / ' . $ticket['projectName'];
+                return $ticket['clientName'].' / '.$ticket['projectName'];
 
             case 'priority':
                 if ($groupKey === '999') {
@@ -3434,10 +3434,10 @@ class Tickets
 
             case 'sprint':
                 if ($groupKey === 'backlog') {
-                    return $ticket['projectName'] . ' / ' . $this->language->__('label.not_assigned_to_sprint');
+                    return $ticket['projectName'].' / '.$this->language->__('label.not_assigned_to_sprint');
                 }
 
-                return $ticket['projectName'] . ' / ' . ($ticket['sprintName'] ?: 'Sprint ' . $groupKey);
+                return $ticket['projectName'].' / '.($ticket['sprintName'] ?: 'Sprint '.$groupKey);
 
             default:
                 return 'Default Group';
@@ -3824,7 +3824,7 @@ class Tickets
 
         foreach ($milestones as $key => $milestone) {
             $milestones[$key] = $this->prepareDatesForApiResponse($milestone);
-            $milestones[$key]['id'] = $milestone['id'] . '-' . $milestone['date'];
+            $milestones[$key]['id'] = $milestone['id'].'-'.$milestone['date'];
         }
 
         return $milestones;
@@ -3884,7 +3884,7 @@ class Tickets
 
         foreach ($todos as $key => $todo) {
             $todos[$key] = $this->prepareDatesForApiResponse($todo);
-            $todos[$key]['id'] = $todo['id'] . '-' . $todo['date'];
+            $todos[$key]['id'] = $todo['id'].'-'.$todo['date'];
         }
 
         return $todos;

@@ -33,7 +33,7 @@ class WorkTracker
 
     public function __construct(WorkTrackerRepository $repo, Environment $config)
     {
-        $this->repo   = $repo;
+        $this->repo = $repo;
         $this->config = $config;
     }
 
@@ -44,9 +44,8 @@ class WorkTracker
     /**
      * Start a new work session for the given user.
      *
-     * @param  int     $userId
      * @param  string  $base64Screenshot  Raw base64 string (no data-URI prefix required but handled)
-     * @return array   ['success' => bool, 'session_id' => int|null, 'message' => string]
+     * @return array ['success' => bool, 'session_id' => int|null, 'message' => string]
      */
     public function startSession(int $userId, string $base64Screenshot): array
     {
@@ -54,9 +53,9 @@ class WorkTracker
         $existing = $this->repo->getActiveSession($userId);
         if ($existing !== false) {
             return [
-                'success'    => false,
+                'success' => false,
                 'session_id' => (int) $existing->id,
-                'message'    => 'A session is already running.',
+                'message' => 'A session is already running.',
             ];
         }
 
@@ -86,9 +85,9 @@ class WorkTracker
         }
 
         return [
-            'success'    => true,
+            'success' => true,
             'session_id' => $sessionId,
-            'message'    => 'Session started.',
+            'message' => 'Session started.',
         ];
     }
 
@@ -116,12 +115,12 @@ class WorkTracker
             return ['success' => false, 'duration' => null, 'message' => 'Could not close session.'];
         }
 
-        $duration = $this->computeActiveSeconds($session, new \DateTime());
+        $duration = $this->computeActiveSeconds($session, new \DateTime);
 
         Log::info('WorkTracker: session cancelled (orphaned/no end screenshot)', [
             'sessionId' => $sessionId,
-            'userId'    => $userId,
-            'duration'  => $duration,
+            'userId' => $userId,
+            'duration' => $duration,
         ]);
 
         return ['success' => true, 'duration' => $duration, 'message' => 'Session cancelled.'];
@@ -185,9 +184,10 @@ class WorkTracker
         if ($count > 0) {
             Log::info('WorkTracker: auto-closed open sessions on logout', [
                 'userId' => $userId,
-                'count'  => $count,
+                'count' => $count,
             ]);
         }
+
         return $count;
     }
 
@@ -196,10 +196,7 @@ class WorkTracker
      * sessions — if paused, the repo finalises the still-open pause delta
      * before computing the active duration.
      *
-     * @param  int     $sessionId
-     * @param  int     $userId
-     * @param  string  $base64Screenshot
-     * @return array   ['success' => bool, 'duration' => int|null, 'message' => string]
+     * @return array ['success' => bool, 'duration' => int|null, 'message' => string]
      */
     public function stopSession(int $sessionId, int $userId, string $base64Screenshot): array
     {
@@ -230,9 +227,9 @@ class WorkTracker
         }
 
         return [
-            'success'  => true,
-            'duration' => $this->computeActiveSeconds($session, new \DateTime()),
-            'message'  => 'Session completed.',
+            'success' => true,
+            'duration' => $this->computeActiveSeconds($session, new \DateTime),
+            'message' => 'Session completed.',
         ];
     }
 
@@ -243,8 +240,8 @@ class WorkTracker
      */
     private function computeActiveSeconds(object $session, \DateTime $now): int
     {
-        $start         = new \DateTime($session->start_time);
-        $gross         = $now->getTimestamp() - $start->getTimestamp();
+        $start = new \DateTime($session->start_time);
+        $gross = $now->getTimestamp() - $start->getTimestamp();
         $pausedSeconds = (int) ($session->paused_seconds ?? 0);
 
         if (($session->status ?? '') === 'paused' && ! empty($session->last_paused_at)) {
@@ -276,26 +273,26 @@ class WorkTracker
 
         if (! $session) {
             return [
-                'running'         => false,
-                'paused'          => false,
-                'session_id'      => null,
+                'running' => false,
+                'paused' => false,
+                'session_id' => null,
                 'elapsed_seconds' => 0,
-                'start_time'      => null,
-                'paused_seconds'  => 0,
-                'last_paused_at'  => null,
+                'start_time' => null,
+                'paused_seconds' => 0,
+                'last_paused_at' => null,
             ];
         }
 
-        $elapsed = $this->computeActiveSeconds($session, new \DateTime());
+        $elapsed = $this->computeActiveSeconds($session, new \DateTime);
 
         return [
-            'running'         => $session->status === 'running',
-            'paused'          => $session->status === 'paused',
-            'session_id'      => (int) $session->id,
+            'running' => $session->status === 'running',
+            'paused' => $session->status === 'paused',
+            'session_id' => (int) $session->id,
             'elapsed_seconds' => $elapsed,
-            'start_time'      => $session->start_time,
-            'paused_seconds'  => (int) ($session->paused_seconds ?? 0),
-            'last_paused_at'  => $session->last_paused_at ?? null,
+            'start_time' => $session->start_time,
+            'paused_seconds' => (int) ($session->paused_seconds ?? 0),
+            'last_paused_at' => $session->last_paused_at ?? null,
         ];
     }
 
@@ -307,24 +304,24 @@ class WorkTracker
         // Dashboard stats are scoped to the user's local day/week (IST).
         // Storage is UTC, so the repository translates this IST date to a
         // UTC range before querying.
-        $today        = now(self::DISPLAY_TZ)->toDateString();
+        $today = now(self::DISPLAY_TZ)->toDateString();
         $activeSession = $this->repo->getActiveSession($userId);
 
         $elapsed = 0;
         if ($activeSession) {
-            $elapsed = $this->computeActiveSeconds($activeSession, new \DateTime());
+            $elapsed = $this->computeActiveSeconds($activeSession, new \DateTime);
         }
 
         $sessions = $this->repo->getUserSessions($userId, 20, 0);
         $totalCount = $this->repo->countUserSessions($userId);
 
         return [
-            'active_session'  => $activeSession,
+            'active_session' => $activeSession,
             'elapsed_seconds' => $elapsed,
-            'today_total'     => $this->repo->getDayTotal($userId, $today),
-            'week_total'      => $this->repo->getWeekTotal($userId),
-            'sessions'        => $sessions,
-            'total_count'     => $totalCount,
+            'today_total' => $this->repo->getDayTotal($userId, $today),
+            'week_total' => $this->repo->getWeekTotal($userId),
+            'sessions' => $sessions,
+            'total_count' => $totalCount,
         ];
     }
 
@@ -333,18 +330,18 @@ class WorkTracker
      */
     public function getAdminDashboard(int $page = 1, int $perPage = 50): array
     {
-        $offset   = ($page - 1) * $perPage;
+        $offset = ($page - 1) * $perPage;
         $sessions = $this->repo->getAllSessions($perPage, $offset);
-        $total    = $this->repo->countAllSessions();
+        $total = $this->repo->countAllSessions();
 
         return [
-            'sessions'            => $sessions,
-            'total_count'         => $total,
-            'page'                => $page,
-            'per_page'            => $perPage,
-            'total_pages'         => (int) ceil($total / $perPage),
-            'active_now'          => $this->repo->getActiveCount(),
-            'today_grand_total'   => $this->repo->getTodayGrandTotal(),
+            'sessions' => $sessions,
+            'total_count' => $total,
+            'page' => $page,
+            'per_page' => $perPage,
+            'total_pages' => (int) ceil($total / $perPage),
+            'active_now' => $this->repo->getActiveCount(),
+            'today_grand_total' => $this->repo->getTodayGrandTotal(),
         ];
     }
 
@@ -385,26 +382,26 @@ class WorkTracker
 
         // Validate it is actually an image by checking magic bytes
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $mime  = $finfo->buffer($binary);
+        $mime = $finfo->buffer($binary);
         if (! in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
             return ['success' => false, 'path' => '', 'message' => 'Only JPEG, PNG and WebP screenshots are accepted.'];
         }
 
-        $ext     = match ($mime) {
+        $ext = match ($mime) {
             'image/jpeg' => 'jpg',
             'image/webp' => 'webp',
-            default      => 'png',
+            default => 'png',
         };
 
-        $dir  = $this->screenshotDir();
+        $dir = $this->screenshotDir();
         $file = "{$userId}_{$sessionId}_{$type}.{$ext}";
-        $full = $dir . DIRECTORY_SEPARATOR . $file;
+        $full = $dir.DIRECTORY_SEPARATOR.$file;
 
         if (file_put_contents($full, $binary) === false) {
             return ['success' => false, 'path' => '', 'message' => 'Could not write screenshot to disk.'];
         }
 
-        return ['success' => true, 'path' => self::SCREENSHOT_DIR . '/' . $file, 'message' => 'OK'];
+        return ['success' => true, 'path' => self::SCREENSHOT_DIR.'/'.$file, 'message' => 'OK'];
     }
 
     /**
@@ -412,22 +409,22 @@ class WorkTracker
      */
     private function renameScreenshot(string $oldRelPath, int $userId, int $sessionId, string $type): string|false
     {
-        $base    = $this->screenshotDir();
-        $oldFile = $base . DIRECTORY_SEPARATOR . basename($oldRelPath);
+        $base = $this->screenshotDir();
+        $oldFile = $base.DIRECTORY_SEPARATOR.basename($oldRelPath);
 
         if (! file_exists($oldFile)) {
             return false;
         }
 
-        $ext     = pathinfo($oldFile, PATHINFO_EXTENSION);
+        $ext = pathinfo($oldFile, PATHINFO_EXTENSION);
         $newFile = "{$userId}_{$sessionId}_{$type}.{$ext}";
-        $newFull = $base . DIRECTORY_SEPARATOR . $newFile;
+        $newFull = $base.DIRECTORY_SEPARATOR.$newFile;
 
         if (! rename($oldFile, $newFull)) {
             return false;
         }
 
-        return self::SCREENSHOT_DIR . '/' . $newFile;
+        return self::SCREENSHOT_DIR.'/'.$newFile;
     }
 
     /**
@@ -435,7 +432,7 @@ class WorkTracker
      */
     private function screenshotDir(): string
     {
-        $dir = base_path('userfiles') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, self::SCREENSHOT_DIR);
+        $dir = base_path('userfiles').DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, self::SCREENSHOT_DIR);
 
         if (! is_dir($dir)) {
             mkdir($dir, 0755, true);
@@ -449,9 +446,9 @@ class WorkTracker
      * Routed through the auth-gated Screenshot controller so cross-user
      * access is denied (employees see only their own; manager+ see all).
      *
-     * @param  int     $sessionId  DB id of the work session
-     * @param  string  $type       'start' | 'end'
-     * @param  string  $relative   The stored relative path (used only to confirm a file exists)
+     * @param  int  $sessionId  DB id of the work session
+     * @param  string  $type  'start' | 'end'
+     * @param  string  $relative  The stored relative path (used only to confirm a file exists)
      */
     public function screenshotUrl(int $sessionId, string $type, string $relative): string
     {
@@ -459,6 +456,6 @@ class WorkTracker
             return '';
         }
 
-        return rtrim(BASE_URL, '/') . '/worktracker/screenshot?session_id=' . $sessionId . '&type=' . $type;
+        return rtrim(BASE_URL, '/').'/worktracker/screenshot?session_id='.$sessionId.'&type='.$type;
     }
 }

@@ -3,9 +3,8 @@
 namespace Leantime\Domain\Worktracker\Repositories;
 
 use Illuminate\Database\ConnectionInterface;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use Leantime\Core\Db\Db as DbCore;
 
 class WorkTracker
@@ -53,14 +52,14 @@ class WorkTracker
     public function createSession(int $userId, string $screenshotPath): int
     {
         return $this->db->table('zp_work_sessions')->insertGetId([
-            'user_id'          => $userId,
-            'start_time'       => now()->toDateTimeString(),
-            'status'           => 'running',
-            'paused_seconds'   => 0,
-            'last_paused_at'   => null,
+            'user_id' => $userId,
+            'start_time' => now()->toDateTimeString(),
+            'status' => 'running',
+            'paused_seconds' => 0,
+            'last_paused_at' => null,
             'start_screenshot' => $screenshotPath,
-            'created_at'       => now(),
-            'updated_at'       => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 
@@ -84,8 +83,8 @@ class WorkTracker
             return false;
         }
 
-        $endTime       = new \DateTime();
-        $startTime     = new \DateTime($session->start_time);
+        $endTime = new \DateTime;
+        $startTime = new \DateTime($session->start_time);
         $pausedSeconds = (int) ($session->paused_seconds ?? 0);
 
         // If we're closing while paused, finalize the still-open pause delta first.
@@ -94,20 +93,20 @@ class WorkTracker
             $pausedSeconds += max(0, $endTime->getTimestamp() - $pauseStart->getTimestamp());
         }
 
-        $grossSeconds  = $endTime->getTimestamp() - $startTime->getTimestamp();
+        $grossSeconds = $endTime->getTimestamp() - $startTime->getTimestamp();
         $activeSeconds = max(0, $grossSeconds - $pausedSeconds);
 
         return (bool) $this->db->table('zp_work_sessions')
             ->where('id', $sessionId)
             ->where('user_id', $userId)
             ->update([
-                'end_time'        => $endTime->format('Y-m-d H:i:s'),
-                'total_duration'  => $activeSeconds,
-                'paused_seconds'  => $pausedSeconds,
-                'last_paused_at'  => null,
-                'status'          => 'completed',
-                'end_screenshot'  => $screenshotPath,
-                'updated_at'      => now(),
+                'end_time' => $endTime->format('Y-m-d H:i:s'),
+                'total_duration' => $activeSeconds,
+                'paused_seconds' => $pausedSeconds,
+                'last_paused_at' => null,
+                'status' => 'completed',
+                'end_screenshot' => $screenshotPath,
+                'updated_at' => now(),
             ]);
     }
 
@@ -122,9 +121,9 @@ class WorkTracker
             ->where('user_id', $userId)
             ->where('status', 'running')
             ->update([
-                'status'         => 'paused',
+                'status' => 'paused',
                 'last_paused_at' => now()->toDateTimeString(),
-                'updated_at'     => now(),
+                'updated_at' => now(),
             ]);
 
         return $affected > 0;
@@ -147,18 +146,18 @@ class WorkTracker
         }
 
         $pauseStart = new \DateTime($session->last_paused_at);
-        $now        = new \DateTime();
-        $delta      = max(0, $now->getTimestamp() - $pauseStart->getTimestamp());
+        $now = new \DateTime;
+        $delta = max(0, $now->getTimestamp() - $pauseStart->getTimestamp());
 
         $affected = $this->db->table('zp_work_sessions')
             ->where('id', $sessionId)
             ->where('user_id', $userId)
             ->where('status', 'paused')
             ->update([
-                'status'         => 'running',
+                'status' => 'running',
                 'paused_seconds' => (int) ($session->paused_seconds ?? 0) + $delta,
                 'last_paused_at' => null,
-                'updated_at'     => now(),
+                'updated_at' => now(),
             ]);
 
         return $affected > 0;
@@ -171,7 +170,7 @@ class WorkTracker
      * by the time logout fires the screen-capture stream is no longer
      * available and prompting for permission would be a confusing UX.
      *
-     * @return int  number of sessions closed
+     * @return int number of sessions closed
      */
     public function closeOpenSessionsForUser(int $userId): int
     {
@@ -194,8 +193,6 @@ class WorkTracker
      * Retrieve the currently open session (running OR paused) for a user.
      * Renamed semantically from "active" since paused sessions are still
      * the user's current session — they just aren't accruing time.
-     *
-     * @return object|false
      */
     public function getActiveSession(int $userId): object|false
     {
@@ -210,8 +207,6 @@ class WorkTracker
 
     /**
      * Retrieve a single session by ID, validated against userId.
-     *
-     * @return object|false
      */
     public function getSession(int $sessionId, int $userId): object|false
     {
@@ -271,9 +266,9 @@ class WorkTracker
      */
     public function getWeekTotal(int $userId): int
     {
-        $tz       = \Leantime\Domain\Worktracker\Services\WorkTracker::DISPLAY_TZ;
-        $monday   = \Carbon\Carbon::now($tz)->startOfWeek()->format('Y-m-d 00:00:00');
-        $sunday   = \Carbon\Carbon::now($tz)->endOfWeek()->format('Y-m-d 23:59:59');
+        $tz = \Leantime\Domain\Worktracker\Services\WorkTracker::DISPLAY_TZ;
+        $monday = \Carbon\Carbon::now($tz)->startOfWeek()->format('Y-m-d 00:00:00');
+        $sunday = \Carbon\Carbon::now($tz)->endOfWeek()->format('Y-m-d 23:59:59');
         $mondayUtc = \Carbon\Carbon::parse($monday, $tz)->setTimezone('UTC')->format('Y-m-d H:i:s');
         $sundayUtc = \Carbon\Carbon::parse($sunday, $tz)->setTimezone('UTC')->format('Y-m-d H:i:s');
 
@@ -290,13 +285,13 @@ class WorkTracker
      * Translate an IST calendar date "Y-m-d" into the matching UTC
      * datetime range [00:00:00 IST → 23:59:59 IST] expressed in UTC.
      *
-     * @return array{0:string,1:string}  [fromUtc, toUtc] in "Y-m-d H:i:s"
+     * @return array{0:string,1:string} [fromUtc, toUtc] in "Y-m-d H:i:s"
      */
     private function istDateToUtcRange(string $istDate): array
     {
         $tz = \Leantime\Domain\Worktracker\Services\WorkTracker::DISPLAY_TZ;
-        $from = \Carbon\Carbon::parse($istDate . ' 00:00:00', $tz)->setTimezone('UTC')->format('Y-m-d H:i:s');
-        $to   = \Carbon\Carbon::parse($istDate . ' 23:59:59', $tz)->setTimezone('UTC')->format('Y-m-d H:i:s');
+        $from = \Carbon\Carbon::parse($istDate.' 00:00:00', $tz)->setTimezone('UTC')->format('Y-m-d H:i:s');
+        $to = \Carbon\Carbon::parse($istDate.' 23:59:59', $tz)->setTimezone('UTC')->format('Y-m-d H:i:s');
 
         return [$from, $to];
     }

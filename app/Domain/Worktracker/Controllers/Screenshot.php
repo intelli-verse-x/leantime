@@ -33,15 +33,15 @@ class Screenshot extends Controller
         Auth::authOrRedirect([Roles::$editor, Roles::$manager, Roles::$admin, Roles::$owner], true);
 
         $sessionId = isset($_GET['session_id']) ? (int) $_GET['session_id'] : 0;
-        $type      = $_GET['type'] ?? '';
+        $type = $_GET['type'] ?? '';
 
         if ($sessionId <= 0 || ! in_array($type, ['start', 'end'], true)) {
             return new Response('Bad request', 400);
         }
 
         $currentUserId = (int) session('userdata.id');
-        $currentRole   = session('userdata.role') ?? '';
-        $isPrivileged  = in_array($currentRole, [Roles::$manager, Roles::$admin, Roles::$owner], true);
+        $currentRole = session('userdata.role') ?? '';
+        $isPrivileged = in_array($currentRole, [Roles::$manager, Roles::$admin, Roles::$owner], true);
 
         $session = $isPrivileged
             ? $this->findAnyById($sessionId)
@@ -83,14 +83,14 @@ class Screenshot extends Controller
      */
     private function resolvePath(string $relative): ?string
     {
-        $base = realpath(base_path('userfiles') . DIRECTORY_SEPARATOR . 'worktracker' . DIRECTORY_SEPARATOR . 'screenshots');
+        $base = realpath(base_path('userfiles').DIRECTORY_SEPARATOR.'worktracker'.DIRECTORY_SEPARATOR.'screenshots');
 
         if ($base === false) {
             return null;
         }
 
         $filename = basename($relative);
-        $full     = $base . DIRECTORY_SEPARATOR . $filename;
+        $full = $base.DIRECTORY_SEPARATOR.$filename;
 
         // Final canonicalisation — block traversal attempts.
         $resolved = realpath($full);
@@ -104,7 +104,7 @@ class Screenshot extends Controller
     private function guessMime(string $path): string
     {
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $mime  = $finfo->file($path) ?: 'application/octet-stream';
+        $mime = $finfo->file($path) ?: 'application/octet-stream';
 
         return in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)
             ? $mime
