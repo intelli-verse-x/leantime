@@ -3,7 +3,9 @@
 namespace Leantime\Domain\Users\Controllers;
 
 use Leantime\Core\Controller\Controller;
+use Leantime\Core\UI\Theme as ThemeCore;
 use Leantime\Domain\Auth\Services\Auth;
+use Leantime\Domain\Setting\Services\Setting as SettingService;
 use Leantime\Domain\Users\Repositories\Users;
 
 class PatchUserSettings extends Controller
@@ -12,12 +14,20 @@ class PatchUserSettings extends Controller
 
     private Users $userRepository;
 
+    private SettingService $settingsService;
+
+    private ThemeCore $themeCore;
+
     public function init(
         Auth $authService,
-        Users $userRepository
+        Users $userRepository,
+        SettingService $settingsService,
+        ThemeCore $themeCore
     ) {
         $this->authService = $authService;
         $this->userRepository = $userRepository;
+        $this->settingsService = $settingsService;
+        $this->themeCore = $themeCore;
     }
 
     /**
@@ -31,6 +41,18 @@ class PatchUserSettings extends Controller
         }
 
         $userId = $this->authService->getUserId();
+
+        // Handle dynamic colorMode (theme switcher) updates
+        if (isset($params['colorMode'])) {
+            $colorMode = htmlentities($params['colorMode']);
+            if (in_array($colorMode, ['light', 'dark'])) {
+                $this->settingsService->saveSetting('usersettings.'.$userId.'.colorMode', $colorMode);
+                $this->themeCore::clearCache();
+                $this->themeCore->setColorMode($colorMode);
+
+                return $this->tpl->displayJson(['status' => 'success']);
+            }
+        }
 
         // Handle modal settings updates
         if (isset($params['patchModalSettings']) && $params['patchModalSettings'] == 1) {

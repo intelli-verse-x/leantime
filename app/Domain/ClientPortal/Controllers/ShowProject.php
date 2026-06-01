@@ -56,6 +56,6 @@ class ShowProject extends Controller
         $this->tpl->assign('requests', $detail['requests']);
         $this->tpl->assign('projectId', $projectId);
 
-        return $this->tpl->display('clientportal.showProject');
+        return $this->tpl->display('clientportal.showProject', 'clientportal');
     }
 }

@@ -11,7 +11,7 @@
     {{-- Toolbar: view toggle + project filter --}}
     <div class="tw-flex tw-items-center tw-gap-1" style="position:absolute; top:10px; right:35px;">
 
-        {{-- View toggle: List | Kanban | Calendar | Recently Updated --}}
+        {{-- View toggle: List | Kanban | Recently Updated --}}
         <div class="btn-group left" style="margin-right:4px;">
             <button class="btn btn-link btn-round-icon"
                 title="{{ __('buttons.list_view') }}"
@@ -25,18 +25,8 @@
             </button>
             <button class="btn btn-link btn-round-icon active"
                 title="Kanban"
-                aria-label="Kanban"
-                style="color:var(--accent1);">
+                aria-label="Kanban">
                 <span class="fa-solid fa-table-columns"></span>
-            </button>
-            <button class="btn btn-link btn-round-icon"
-                title="Calendar"
-                aria-label="Calendar"
-                hx-get="{{ BASE_URL }}/hx/widgets/myToDosCalendar/get"
-                hx-target="#myTodosKanbanContainer"
-                hx-swap="outerHTML"
-                hx-indicator=".htmx-indicator">
-                <span class="fa-solid fa-calendar-days"></span>
             </button>
             <button class="btn btn-link btn-round-icon"
                 title="Recently Updated"

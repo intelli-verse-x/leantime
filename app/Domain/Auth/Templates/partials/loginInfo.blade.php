@@ -28,9 +28,18 @@
             </a>
         </li>
         @dispatchEvent('afterMyProfile')
+        @php
+            $themeCore = app(\Leantime\Core\UI\Theme::class);
+            $currentColorMode = $themeCore->getColorMode();
+        @endphp
         <li>
-            <a href='{{ $editOwnBase }}#theme' preload="mouseover">
-                {!! __("menu.theme") !!}
+            <a href="javascript:void(0);" onclick="toggleNavbarTheme()" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 15px;">
+                <span>{!! __("menu.theme") !!}</span>
+                <span class="theme-switcher-toggle" style="display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-sun" id="theme-icon-light" style="color: #f1c40f; font-size: 14px; {{ $currentColorMode === 'light' ? '' : 'display: none;' }}"></i>
+                    <i class="fa-solid fa-moon" id="theme-icon-dark" style="color: #3498db; font-size: 14px; {{ $currentColorMode === 'dark' ? '' : 'display: none;' }}"></i>
+                    <span id="theme-text" style="font-weight: 600;">{{ $currentColorMode === 'dark' ? 'Dark' : 'Light' }}</span>
+                </span>
             </a>
         </li>
         @dispatchEvent('afterTheme')
@@ -53,3 +62,48 @@
 @dispatchEvent('beforeUserinfoMenuClose')
 </div>
 @dispatchEvent('afterUserinfoMenuClose')
+
+<script>
+function toggleNavbarTheme() {
+    var themeUrl = jQuery("#themeStyleSheet").attr("href");
+    if (!themeUrl) return;
+
+    var isDark = themeUrl.indexOf("dark.css") !== -1;
+    var newMode = isDark ? "light" : "dark";
+
+    // Update data-theme attribute on <html> so [data-theme="dark"] selectors
+    // in light.css do not fire when switching to light mode on the current page.
+    document.documentElement.setAttribute('data-theme', newMode);
+
+    // Call the core Leantime theme toggle logic
+    leantime.snippets.toggleTheme(newMode);
+
+    // Update UI elements instantly inside the dropdown
+    if (newMode === 'light') {
+        jQuery('#theme-icon-light').show();
+        jQuery('#theme-icon-dark').hide();
+        jQuery('#theme-text').text('Light');
+    } else {
+        jQuery('#theme-icon-light').hide();
+        jQuery('#theme-icon-dark').show();
+        jQuery('#theme-text').text('Dark');
+    }
+
+    // Persist to the database in the background via AJAX PATCH
+    jQuery.ajax({
+        type: 'PATCH',
+        url: leantime.appUrl + '/users/patchUserSettings',
+        data: {
+            colorMode: newMode
+        },
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    }).done(function(response) {
+        console.log("Theme persisted: " + newMode);
+    }).fail(function(xhr) {
+        console.error("Failed to persist theme preference: ", xhr);
+    });
+}
+</script>
+

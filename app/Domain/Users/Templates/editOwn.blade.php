@@ -22,7 +22,6 @@
                         <li><a href="#security">{!! __('tabs.security') !!}</a></li>
                         <li><a href="#settings">{!! __('tabs.settings') !!}</a></li>
                         <li><a href="#notifications">{!! __('tabs.notifications') !!}</a></li>
-                        <li><a href="#theme">{!! __('tabs.theme') !!}</a></li>
                         @dispatchEvent('tabs')
                     </ul>
 
@@ -103,7 +102,7 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="center">
-                                    <img src='{{ BASE_URL }}/api/users?profileImage={{ $user['id'] }}?v={{ format($user['modified'])->timestamp() }}'  class='profileImg tw-rounded-full' alt='Profile Picture' id="previousImage"/>
+                                    <img src='{{ BASE_URL }}/api/users?profileImage={{ $user['id'] }}&v={{ format($user['modified'])->timestamp() }}'  class='profileImg tw-rounded-full' alt='Profile Picture' id="previousImage"/>
                                     <div id="profileImg">
                                     </div>
 
@@ -276,83 +275,7 @@
                         </form>
                     </div>
 
-                    <div id="theme">
-                        <form action="" method="post">
-                            <input type="hidden" name="{{ session("formTokenName") }}" value="{{ session("formTokenValue") }}" />
-                            <div class="row-fluid">
-                                <div class="form-group">
-                                    <label for="themeSelect">Optimal Stimulation</label>
-                                    <span class='field tw-flex tw-w-80'>
 
-                                         <?php
-                                         foreach ($availableThemes as $key => $theme) { ?>
-                                             <x-global::selectable selected="{{ ($userTheme == $key ? 'true' : 'false') }}" :id="''" :name="'theme'" :value="$key" :label="''" class="tw-w-1/2" onclick="leantime.snippets.toggleBg('{{ $key }}')">
-                                                <img src="{{ BASE_URL }}/dist/images/background-{{$key}}.png" style="margin:0; border-radius:10px;" />
-                                                     <br /><?= $tpl->__($theme['name']) ?>
-                                             </x-global::selectable>
-
-                                        <?php } ?>
-                                    </span>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-12">
-
-                                        <hr />
-                                        <label for="colormode" >{{ __('label.colormode') }}</label>
-
-                                        <x-global::selectable :selected="($userColorMode == 'light') ? 'true' : ''" :id="'light'" :name="'colormode'" :value="'light'" :label="'Light'" onclick="leantime.snippets.toggleTheme('light')">
-                                            <label for="colormode-light" class="tw-w-[100px]">
-                                                <i class="fa-solid fa-sun tw-font-xxl"></i>
-                                            </label>
-                                        </x-global::selectable>
-
-                                        <x-global::selectable :selected="($userColorMode == 'dark') ? 'true' : ''" :id="'dark'" :name="'colormode'" :value="'dark'" :label="'Dark'" onclick="leantime.snippets.toggleTheme('dark')">
-                                            <label for="colormode-light" class="tw-w-[100px]">
-                                                <i class="fa-solid fa-moon tw-font-xxl"></i>
-                                            </label>
-                                        </x-global::selectable>
-
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <hr />
-                                        <label>Font</label>
-                                        @foreach($availableFonts as $key => $font)
-
-                                            <x-global::selectable  :selected="($themeFont == $font) ? 'true' : ''" :id="$key" :name="'themeFont'" :value="$font" :label="$font" onclick="leantime.snippets.toggleFont('{{ $font }}')">
-                                                <label for="selectable-{{ $key }}" class="font tw-w-[200px]"
-                                                       style="font-family:'{{ $font }}'; font-size:16px;">
-                                                    The quick brown fox jumps over the lazy dog
-                                                </label>
-                                            </x-global::selectable>
-
-                                        @endforeach
-
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <hr />
-                                        <label>Color Scheme</label>
-                                        @foreach($availableColorSchemes as $key => $scheme )
-                                            <x-global::selectable class="circle" :selected="($userColorScheme == $key) ? 'true' : ''" :id="$key" :name="'colorscheme'" :value="$key" :label="__($scheme['name'])"  onclick="leantime.snippets.toggleColors('{{ $scheme['primaryColor'] }}','{{ $scheme['secondaryColor'] }}');">
-                                                <label for="color-{{ $key }}" class="colorCircle"
-                                                       style="background:linear-gradient(135deg, {{ $scheme["primaryColor"] }} 20%, {{ $scheme["secondaryColor"] }} 100%);">
-                                                </label>
-                                            </x-global::selectable>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                            <br /><br />
-                            <input type="hidden" name="saveTheme" value="1" />
-                            <input type="submit" name="save" id="saveTheme" value="{{ __('buttons.save') }}" class="button"/>
-                        </form>
-
-                        @dispatchEvent('themecontent')
-                    </div>
 
                     <div id="notifications">
                         <form action="" method="post">
@@ -500,7 +423,6 @@
 
         jQuery("#messagesfrequency").chosen();
         jQuery("#language").chosen();
-        jQuery("#themeSelect").chosen();
 
     });
 </script>

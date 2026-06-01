@@ -2,7 +2,13 @@
 
 @section('content')
 
-<div class="maincontent tlcm-dashboard" style="margin-top:0; padding-top:20px;">
+<div class="page-head" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+    <div class="page-title">
+        <h1 style="font-size: 24px; font-weight: 700; color: var(--fg-strong); margin: 0;">My Projects</h1>
+        <p style="color: var(--fg-secondary); font-size: 14px; margin: 4px 0 0 0;">Overview of your assigned projects</p>
+    </div>
+</div>
+<div class="tlcm-dashboard">
 
     {!! $tpl->displayNotification() !!}
 
@@ -316,544 +322,576 @@
 </div>
 
 <style>
-    /* ── TL / CM Dashboard ── */
+    /* -- Toba Tech Premium Styles for Dashboard -- */
+    .tlcm-dashboard { padding: 0 !important; }
+    
+    /* KPI Strip */
+    .tlcm-kpi-strip {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+        padding: 0 15px;
+    }
+    @media (max-width: 1200px) {
+        .tlcm-kpi-strip {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    @media (max-width: 768px) {
+        .tlcm-kpi-strip {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    @media (max-width: 480px) {
+        .tlcm-kpi-strip {
+            grid-template-columns: 1fr;
+        }
+    }
+
     .tlcm-kpi-card {
-        background: var(--glass-background);
-        backdrop-filter: var(--glass-blur);
-        -webkit-backdrop-filter: var(--glass-blur);
-        border: var(--glass-border);
-        border-radius: var(--box-radius, 8px);
-        box-shadow: var(--large-shadow);
-        padding: 18px 20px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        padding: 20px;
         display: flex;
         flex-direction: column;
-        gap: 2px;
-        transition: box-shadow .15s, transform .15s;
+        gap: 4px;
+        transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
     }
-
     .tlcm-kpi-card:hover {
-        box-shadow: var(--regular-shadow);
+        box-shadow: var(--shadow-md);
         transform: translateY(-2px);
+        border-color: var(--border-strong);
     }
-
     .tlcm-kpi-card .kpi-icon {
-        font-size: 18px;
-        opacity: .45;
-        margin-bottom: 4px;
+        font-size: 20px;
+        color: var(--accent1);
+        margin-bottom: 8px;
     }
-
     .tlcm-kpi-card .kpi-value {
         font-size: 28px;
         font-weight: 700;
+        color: var(--fg-strong);
         line-height: 1;
     }
-
     .tlcm-kpi-card .kpi-label {
-        font-size: 12px;
-        opacity: .65;
+        font-size: 11px;
+        color: var(--fg-secondary);
+        font-weight: 600;
+        text-transform: uppercase;
         margin-top: 4px;
+        letter-spacing: 0.5px;
     }
-
-    .tlcm-kpi-card.kpi-warn {
-        border-left: 4px solid #f0ad4e;
-    }
-
-    .tlcm-kpi-card.kpi-danger {
-        border-left: 4px solid #d9534f;
-    }
-
-    .tlcm-kpi-card.kpi-info {
-        border-left: 4px solid var(--accent1, #4a9eff);
-    }
-
-    .tlcm-kpi-card.kpi-review {
-        border-left: 4px solid #e67e22;
-    }
+    .tlcm-kpi-card.kpi-warn { border-left: 4px solid #f59e0b; }
+    .tlcm-kpi-card.kpi-warn .kpi-icon { color: #f59e0b; }
+    .tlcm-kpi-card.kpi-danger { border-left: 4px solid #ef4444; }
+    .tlcm-kpi-card.kpi-danger .kpi-icon { color: #ef4444; }
+    .tlcm-kpi-card.kpi-info { border-left: 4px solid #3b82f6; }
+    .tlcm-kpi-card.kpi-info .kpi-icon { color: #3b82f6; }
+    .tlcm-kpi-card.kpi-review { border-left: 4px solid #e67e22; }
+    .tlcm-kpi-card.kpi-review .kpi-icon { color: #e67e22; }
 
     /* Action bar */
     .tlcm-actionbar {
         display: flex;
-        align-items: center;
         justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 14px;
+        align-items: center;
+        margin-bottom: 24px;
+        gap: 16px;
         flex-wrap: wrap;
     }
-
     .tlcm-actionbar-title {
-        font-size: 15px;
+        font-size: 18px;
         font-weight: 600;
-        opacity: .85;
+        color: var(--fg-strong);
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
-
     .tlcm-actionbar-buttons {
         display: flex;
-        gap: 8px;
+        gap: 10px;
+        align-items: center;
         flex-wrap: wrap;
     }
 
-    .tlcm-actionbar-buttons .btn {
-        font-size: 12px;
-    }
-
-    /* Project list */
-    .tlcm-project-list {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
+    /* Project row container */
     .tlcm-row {
-        background: var(--secondary-background, #fff);
-        border-radius: var(--box-radius, 8px);
-        box-shadow: var(--min-shadow);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
         overflow: hidden;
-        transition: box-shadow .15s;
+        margin-bottom: 16px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-
     .tlcm-row:hover {
-        box-shadow: var(--regular-shadow);
+        border-color: var(--border-strong);
+        box-shadow: var(--shadow-md);
     }
-
     .tlcm-row.is-atrisk {
-        border-left: 3px solid #d9534f;
+        border-left: 4px solid #ef4444;
     }
 
+    /* Summary Header Line */
     .tlcm-row-summary {
-        display: grid;
-        grid-template-columns: 36px minmax(220px, 1.5fr) minmax(140px, 0.8fr) auto 36px;
+        display: flex;
         align-items: center;
-        gap: 14px;
-        padding: 12px 16px;
+        gap: 20px;
+        padding: 18px 24px;
+        width: 100%;
+        background: var(--bg-surface);
+        flex-wrap: wrap;
+    }
+    @media (max-width: 992px) {
+        .tlcm-row-summary {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 14px;
+        }
+        .tlcm-row-progress {
+            width: 100% !important;
+        }
+        .tlcm-row-stats {
+            width: 100%;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+        .tlcm-enter {
+            align-self: flex-end;
+        }
     }
 
+    /* Chevron Toggle */
     .tlcm-toggle {
         background: transparent;
-        border: 1px solid rgba(0, 0, 0, .1);
-        color: inherit;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
+        border: none;
+        color: var(--fg-secondary);
+        font-size: 14px;
         cursor: pointer;
-        transition: background .15s, transform .15s;
-        font-size: 11px;
+        padding: 4px;
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: transform 0.2s ease;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
     }
-
     .tlcm-toggle:hover {
-        background: rgba(0, 0, 0, .05);
+        background: var(--bg-hover);
+        color: var(--fg-strong);
     }
-
+    .tlcm-row.open .tlcm-toggle,
     .tlcm-toggle[aria-expanded="true"] {
         transform: rotate(90deg);
-        background: rgba(74, 158, 255, .12);
-        border-color: var(--accent1, #4a9eff);
-        color: var(--accent1, #4a9eff);
     }
 
+    /* Name & Client */
     .tlcm-row-name {
         display: flex;
         flex-direction: column;
-        color: inherit;
-        text-decoration: none;
+        gap: 4px;
+        flex: 1;
         min-width: 0;
+        text-decoration: none !important;
     }
-
-    .tlcm-row-name:hover .tlcm-name-text {
-        color: var(--accent1, #4a9eff);
-    }
-
     .tlcm-name-text {
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 600;
-        line-height: 1.2;
+        color: var(--fg-strong);
+        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
+        transition: color 0.15s ease;
     }
-
+    .tlcm-row-name:hover .tlcm-name-text {
+        color: var(--accent1);
+    }
     .tlcm-name-client {
-        font-size: 11px;
-        opacity: .6;
-        margin-top: 3px;
+        font-size: 13px;
+        color: var(--fg-secondary);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
     }
 
+    /* Progress track */
     .tlcm-row-progress {
         display: flex;
         align-items: center;
-        gap: 8px;
-        min-width: 120px;
+        gap: 12px;
+        width: 200px;
+        flex-shrink: 0;
     }
-
     .tlcm-progress-track {
+        background: var(--bg-inset);
+        height: 8px;
+        border-radius: 4px;
         flex: 1;
-        height: 6px;
-        background: rgba(0, 0, 0, .08);
-        border-radius: 3px;
         overflow: hidden;
     }
-
     .tlcm-progress-fill {
         height: 100%;
-        border-radius: 3px;
-        transition: width .4s ease;
+        border-radius: 4px;
+        transition: width 0.3s ease;
     }
-
     .fill-ontrack {
-        background: #5cb85c;
+        background: #22c55e;
     }
-
     .fill-atrisk {
-        background: #d9534f;
+        background: #ef4444;
     }
-
     .tlcm-progress-text {
-        font-size: 11px;
-        opacity: .6;
-        min-width: 32px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--fg-secondary);
+        min-width: 36px;
         text-align: right;
     }
 
+    /* Stats Chips */
     .tlcm-row-stats {
         display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
     }
-
     .tlcm-chip {
-        font-size: 11px;
-        font-weight: 600;
-        padding: 3px 9px;
+        background: var(--bg-inset);
+        border: 1px solid var(--border-default);
+        color: var(--fg-secondary);
+        font-weight: 500;
+        font-size: 12px;
+        padding: 4px 10px;
         border-radius: 20px;
-        background: rgba(0, 0, 0, .06);
-        color: var(--primary-font-color);
-        white-space: nowrap;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
     }
-
-    .tlcm-chip.chip-soft {
-        opacity: .65;
+    .tlcm-chip i {
+        font-size: 12px;
     }
-
     .tlcm-chip.chip-warn {
-        background: rgba(240, 173, 78, .18);
-        color: #c8860a;
+        background: #fffbeb;
+        color: #d97706;
+        border-color: #fde68a;
     }
-
     .tlcm-chip.chip-danger {
-        background: rgba(217, 83, 79, .18);
-        color: #d9534f;
+        background: #fef2f2;
+        color: #dc2626;
+        border-color: #fecaca;
     }
-
     .tlcm-chip.chip-info {
-        background: rgba(74, 158, 255, .18);
-        color: var(--accent1, #4a9eff);
+        background: #eff6ff;
+        color: #2563eb;
+        border-color: #bfdbfe;
     }
-
     .tlcm-chip.chip-review {
-        background: rgba(230, 126, 34, .18);
-        color: #e67e22;
+        background: #fff7ed;
+        color: #ea580c;
+        border-color: #ffedd5;
+    }
+    .tlcm-chip.chip-soft {
+        background: var(--bg-inset);
+        color: var(--fg-secondary);
+        border-color: var(--border-default);
     }
 
+    /* Enter Arrow Link */
     .tlcm-enter {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: rgba(74, 158, 255, .12);
-        color: var(--accent1, #4a9eff);
+        background: var(--bg-inset);
+        border: 1px solid var(--border-default);
+        color: var(--fg-secondary);
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         text-decoration: none;
-        font-size: 13px;
-        transition: background .15s, transform .15s;
+        transition: all 0.15s ease;
+        flex-shrink: 0;
     }
-
     .tlcm-enter:hover {
-        background: var(--accent1, #4a9eff);
+        background: var(--accent1);
         color: #fff;
-        transform: translateX(2px);
+        border-color: var(--accent1);
     }
 
-    /* Detail panel */
+    /* Expandable Detail Panel */
     .tlcm-row-detail {
-        border-top: 1px solid rgba(0, 0, 0, .06);
-        padding: 16px 18px;
-        background: rgba(0, 0, 0, .015);
+        background: var(--bg-page);
+        border-top: 1px solid var(--border-default);
+        padding: 24px;
+        animation: slideDown 0.25s ease-out;
+    }
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-4px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
+    /* 4-Column Detail Grid */
     .tlcm-detail-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 18px;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+    }
+    @media (max-width: 1200px) {
+        .tlcm-detail-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    @media (max-width: 768px) {
+        .tlcm-detail-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
     .tlcm-detail-block {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .tlcm-detail-title {
+        color: var(--fg-secondary);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.75px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+    .tlcm-detail-title i {
+        color: var(--accent1);
+        opacity: 0.8;
+    }
+    .tlcm-detail-empty {
+        font-size: 13px;
+        color: var(--fg-muted);
+        font-style: italic;
+        padding: 12px 14px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    /* Team Grid & Cards */
+    .tlcm-team-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .tlcm-team-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        padding: 10px 14px;
+        transition: border-color 0.15s ease;
+    }
+    .tlcm-team-card:hover {
+        border-color: var(--border-strong);
+    }
+    .tlcm-team-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--accent1);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+    .tlcm-team-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
         min-width: 0;
     }
-
-    .tlcm-detail-title {
+    .tlcm-team-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--fg-strong);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .tlcm-team-role {
         font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .5px;
-        opacity: .55;
-        margin-bottom: 8px;
+        color: var(--fg-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .tlcm-detail-empty {
-        font-size: 12px;
-        opacity: .55;
-        padding: 4px 0;
-    }
-
+    /* Detail lists (Activity, Milestones, Awaiting response) */
     .tlcm-detail-list {
         list-style: none;
         padding: 0;
         margin: 0;
         display: flex;
         flex-direction: column;
-        gap: 4px;
-    }
-
-    .tlcm-detail-list li {
-        font-size: 12px;
-    }
-
-    .tlcm-detail-list li a {
-        color: inherit;
-        text-decoration: none;
-        display: flex;
-        justify-content: space-between;
         gap: 8px;
-        padding: 5px 6px;
-        border-radius: 4px;
-        transition: background .12s;
+    }
+    .tlcm-detail-list li {
+        font-size: 13px;
+        line-height: 1.4;
+        color: var(--fg-secondary);
+        padding: 10px 14px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .tlcm-detail-list li:hover {
+        background: var(--bg-hover);
+        border-color: var(--border-strong);
     }
 
-    .tlcm-detail-list li a:hover {
-        background: rgba(0, 0, 0, .04);
-    }
-
+    /* Activity Items */
     .activity-who {
         font-weight: 600;
-        opacity: .8;
+        color: var(--fg-strong);
     }
-
     .activity-sep {
-        opacity: .35;
+        color: var(--fg-muted);
         margin: 0 4px;
     }
-
     .activity-what {
-        opacity: .75;
+        color: var(--accent1);
+        text-decoration: none;
+        font-weight: 500;
     }
-
+    .activity-what:hover {
+        text-decoration: underline;
+    }
     .activity-when {
-        opacity: .45;
+        display: block;
         font-size: 11px;
-        white-space: nowrap;
+        color: var(--fg-muted);
+        margin-top: 4px;
     }
 
-    .req-title {
-        flex: 1;
-    }
-
-    .req-when {
-        opacity: .5;
-        font-size: 11px;
-        white-space: nowrap;
-    }
-
-    /* Team mini grid in detail panel */
-    .tlcm-team-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 6px;
-    }
-
-    .tlcm-team-card {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 8px;
-        border-radius: 4px;
-        background: rgba(0, 0, 0, .04);
-    }
-
-    .tlcm-team-avatar {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: var(--accent1, #4a9eff);
-        color: #fff;
-        font-size: 10px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-
-    .tlcm-team-name {
-        font-size: 12px;
-        font-weight: 600;
-        line-height: 1.15;
-    }
-
-    .tlcm-team-role {
-        font-size: 10px;
-        opacity: .55;
-    }
-
-    .tlcm-detail-actions {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-top: 14px;
-        padding-top: 12px;
-        border-top: 1px dashed rgba(0, 0, 0, .08);
-    }
-
-    .tlcm-detail-actions .btn {
-        font-size: 12px;
-    }
-
-    /* Danger button — Delete Project. Subtle by default so it doesn't
-       compete with primary actions; hover makes intent clear. */
-    .tlcm-btn-danger {
-        background: transparent;
-        color: #d9534f;
-        border: 1px solid rgba(217, 83, 79, .35);
-        transition: background .15s, color .15s, border-color .15s;
-    }
-    .tlcm-btn-danger:hover,
-    .tlcm-btn-danger:focus {
-        background: #d9534f;
-        color: #fff;
-        border-color: #d9534f;
-    }
-
-    /* Empty state */
-    .tlcm-empty {
-        background: var(--secondary-background, #fff);
-        border-radius: var(--box-radius, 8px);
-        box-shadow: var(--regular-shadow);
-        padding: 50px 30px;
-        text-align: center;
-    }
-
-    /* Milestone review rows */
+    /* Milestones review list */
     .tlcm-milestone-review-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 8px;
-        padding: 5px 6px;
-        border-radius: 4px;
-        transition: background .12s;
+        width: 100%;
     }
-
-    .tlcm-milestone-review-row:hover {
-        background: rgba(0, 0, 0, .04);
-    }
-
     .tlcm-milestone-link {
+        color: var(--fg-strong);
+        font-weight: 500;
+        text-decoration: none !important;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+    }
+    .tlcm-milestone-link:hover {
+        color: var(--accent1);
+    }
+    .tlcm-milestone-actions {
         display: flex;
         align-items: center;
         gap: 6px;
-        color: inherit;
-        text-decoration: none;
-        font-size: 12px;
-        flex: 1;
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .tlcm-milestone-link:hover {
-        color: var(--accent1, #4a9eff);
-    }
-
-    .tlcm-milestone-actions {
-        display: flex;
-        gap: 4px;
         flex-shrink: 0;
     }
-
     .btn-inline {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        border: 1px solid var(--border-default);
+        background: var(--bg-surface);
+        color: var(--fg-secondary);
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        border: 1px solid transparent;
-        font-size: 11px;
         cursor: pointer;
-        text-decoration: none;
-        transition: background .12s, color .12s, border-color .12s;
-        background: rgba(0, 0, 0, .05);
-        color: inherit;
-        padding: 0;
+        font-size: 12px;
+        transition: all 0.15s ease;
     }
-
     .btn-inline:hover {
-        text-decoration: none;
+        background: var(--bg-hover);
+        color: var(--fg-strong);
     }
-
-    .btn-inline-approve {
-        background: rgba(92, 184, 92, .15);
-        color: #3d9140;
-        border-color: rgba(92, 184, 92, .3);
-    }
-
     .btn-inline-approve:hover {
-        background: #5cb85c;
-        color: #fff;
-        border-color: #5cb85c;
+        background: #dcfce7;
+        color: #15803d;
+        border-color: #bbf7d0;
     }
-
-    .btn-inline-view {
-        background: rgba(230, 126, 34, .12);
-        color: #e67e22;
-        border-color: rgba(230, 126, 34, .3);
-    }
-
     .btn-inline-view:hover {
-        background: #e67e22;
-        color: #fff;
-        border-color: #e67e22;
+        background: #dbeafe;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
     }
 
-    /* Mobile */
-    @media (max-width: 900px) {
-        .tlcm-kpi-strip {
-            grid-template-columns: repeat(2, 1fr) !important;
-        }
+    /* Awaiting Client Response links */
+    .tlcm-detail-list li a {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        text-decoration: none !important;
+        color: inherit;
+        width: 100%;
+    }
+    .req-title {
+        font-weight: 500;
+        color: var(--fg-strong);
+    }
+    .req-title:hover {
+        color: var(--accent1);
+    }
+    .req-when {
+        font-size: 11px;
+        color: var(--fg-muted);
+    }
 
-        .tlcm-row-summary {
-            grid-template-columns: 32px 1fr auto;
-            row-gap: 8px;
-        }
+    /* Bottom Quick Links Actions Footer */
+    .tlcm-detail-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-top: 20px;
+        margin-top: 20px;
+        border-top: 1px solid var(--border-default);
+        flex-wrap: wrap;
+    }
+    .tlcm-btn-danger {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fee2e2;
+    }
+    .tlcm-btn-danger:hover {
+        background: #fee2e2;
+        color: #b91c1c;
+        border-color: #fca5a5;
+    }
 
-        .tlcm-row-progress,
-        .tlcm-row-stats {
-            grid-column: 1 / -1;
-        }
-
-        .tlcm-detail-grid {
-            grid-template-columns: 1fr;
-        }
+    /* Empty state */
+    .tlcm-empty {
+        text-align: center;
+        padding: 48px 24px;
+        color: var(--fg-secondary);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
     }
 </style>
-
 <script>
     var tlcmDashboard = (function() {
         function toggle(rowId) {
@@ -866,8 +904,10 @@
             btn.setAttribute('aria-expanded', open ? 'false' : 'true');
             if (open) {
                 detail.setAttribute('hidden', '');
+                row.classList.remove('open');
             } else {
                 detail.removeAttribute('hidden');
+                row.classList.add('open');
             }
         }
         return {

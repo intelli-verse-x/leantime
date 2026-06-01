@@ -87,7 +87,7 @@
 
 <style id="fontStyleSetter">
     :root {
-        --primary-font-family: '{{{ $themeFont }}}', 'Helvetica Neue', Helvetica, sans-serif;
+        --primary-font-family: 'Poppins', '{{{ $themeFont }}}', 'Helvetica Neue', Helvetica, sans-serif;
     }
 </style>
 

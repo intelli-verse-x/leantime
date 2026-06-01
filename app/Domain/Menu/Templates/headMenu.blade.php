@@ -69,7 +69,7 @@ $adminRouteTitles = [
             @endif
             <li>
                 <a href="{{ BASE_URL }}/wiki/show">
-                    <i class="fa fa-fw fa-sticky-note"></i> {{ __('menu.quick_add_note') }}
+                    <i class="fa fa-fw fa-book"></i> {{ strip_tags(__('menu.wiki')) }}
                 </a>
             </li>
             <li>
@@ -279,65 +279,7 @@ $adminRouteTitles = [
     || session('userdata.role') === Roles::$commenter;
     @endphp
 
-    {{-- Home button + project switcher — shown for ALL roles when inside a project --}}
-    @if($menuType === 'project')
-    <li style="display:flex; align-items:center; height:50px; padding-left:8px;">
-        <a href="{{ BASE_URL }}/dashboard/home"
-            style="display:inline-flex; align-items:center; gap:6px;
-                   padding:5px 12px; border-radius:var(--element-radius);
-                   background:rgba(255,255,255,.1); color:#fff;
-                   text-decoration:none; font-size:13px; font-weight:600;
-                   transition:background .15s; white-space:nowrap;"
-            onmouseover="this.style.background='rgba(255,255,255,.2)'"
-            onmouseout="this.style.background='rgba(255,255,255,.1)'"
-            data-tippy-content="Back to Home">
-            <i class="fa fa-home"></i>
-            <span class="tw-hidden md:tw-inline">Home</span>
-        </a>
-    </li>
-
-    @if(!empty($headMenuAllProjects))
-    <li style="display:flex; align-items:center; height:50px; padding-left:4px;" class="notificationDropdown">
-        <a href="javascript:void(0);"
-            class="dropdown-toggle"
-            data-toggle="dropdown"
-            style="display:inline-flex; align-items:center; gap:6px;
-                   padding:5px 12px; border-radius:var(--element-radius);
-                   background:rgba(255,255,255,.1); color:#fff;
-                   text-decoration:none; font-size:13px; font-weight:600;
-                   max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-                   transition:background .15s;"
-            onmouseover="this.style.background='rgba(255,255,255,.2)'"
-            onmouseout="this.style.background='rgba(255,255,255,.1)'"
-            data-tippy-content="Switch Project">
-            <i class="fa fa-layer-group"></i>
-            <span class="tw-hidden md:tw-inline" style="overflow:hidden; text-overflow:ellipsis; max-width:130px;">
-                {{ !empty($headMenuCurrentProject['name']) ? $headMenuCurrentProject['name'] : 'Switch Project' }}
-            </span>
-            <i class="fa fa-caret-down" style="font-size:11px; opacity:.7; flex-shrink:0;"></i>
-        </a>
-        <ul class="dropdown-menu" style="min-width:220px; max-height:360px; overflow-y:auto;">
-            <li class="nav-header" style="padding:8px 14px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; opacity:.6;">
-                <i class="fa fa-layer-group" style="margin-right:5px;"></i> Switch Project
-            </li>
-            @foreach($headMenuAllProjects as $proj)
-            <li>
-                <a href="{{ BASE_URL }}/projects/changeCurrentProject/{{ $proj['id'] }}"
-                    style="display:flex; align-items:center; gap:8px; padding:7px 14px; font-size:13px;
-                           {{ (!empty($headMenuCurrentProject['id']) && (int)$headMenuCurrentProject['id'] === (int)$proj['id']) ? 'font-weight:700; color:var(--accent1);' : '' }}">
-                    @if(!empty($headMenuCurrentProject['id']) && (int)$headMenuCurrentProject['id'] === (int)$proj['id'])
-                    <i class="fa fa-check" style="color:var(--accent1); width:12px; flex-shrink:0;"></i>
-                    @else
-                    <i class="fa fa-fw" style="width:12px; flex-shrink:0;"></i>
-                    @endif
-                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $proj['name'] }}</span>
-                </a>
-            </li>
-            @endforeach
-        </ul>
-    </li>
-    @endif
-    @endif {{-- end project context --}}
+ {{-- end project context --}}
 
     @if(! $hideWorkModes && $menuType !== 'project')
     @if ($login::userIsAtLeast(\Leantime\Domain\Auth\Models\Roles::$teamlead, true))

@@ -2,75 +2,282 @@
 
 @section('content')
 
+<style>
+/* ──────────────────────────────────────────
+   Admin Dashboard — Scoped Styles
+   (all classes are local to this template)
+────────────────────────────────────────── */
 
-<div class="maincontent admin-dashboard" style="margin-top:0; padding-top:20px;">
+/* Alias theme vars used in the inline styles to real values */
+:root {
+    --bg-surface:      var(--secondary-background, #fff);
+    --border-default:  var(--main-border-color, #e5e7eb);
+    --fg-strong:       var(--primary-font-color, #111827);
+    --fg-secondary:    #6b7280;
+    --shadow-sm:       0 1px 3px rgba(0,0,0,.08);
+}
 
-    {!! $tpl->displayNotification() !!}
+/* ── KPI widgets (older class names used in the HTML) ── */
+.kpi {
+    background: var(--secondary-background, #fff);
+    border: 1px solid var(--main-border-color, #e5e7eb);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+    display: flex; align-items: center; gap: 16px;
+}
+.kpi-ico {
+    width: 48px; height: 48px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+    flex-shrink: 0;
+}
+.kpi-num { font-size: 28px; font-weight: 700; color: var(--primary-font-color, #111827); line-height: 1; }
+.kpi-cap { font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
 
-    {{-- ── KPI Strip ── --}}
-    <div class="admin-kpi-strip" style="display:grid; grid-template-columns: repeat(4,1fr); gap:16px; margin-bottom:20px; padding: 0 15px;">
 
-        <div class="admin-kpi-card" data-filter="all">
-            <div class="kpi-icon"><i class="fa fa-fw fa-briefcase"></i></div>
-            <div class="kpi-value">{{ $totalActiveProjects }}</div>
-            <div class="kpi-label">Active Projects</div>
-        </div>
+/* ── Page header ── */
+.page-head { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+.page-title h1 { font-size: 24px; font-weight: 700; color: var(--fg-strong, #111827); margin: 0; }
+.page-title p  { color: var(--fg-secondary, #6b7280); font-size: 14px; margin: 4px 0 0 0; }
 
-        <div class="admin-kpi-card {{ $totalOverdue > 0 ? 'kpi-warn' : '' }}" data-filter="at_risk">
-            <div class="kpi-icon"><i class="fa fa-fw fa-clock"></i></div>
-            <div class="kpi-value">{{ $totalOverdue }}</div>
-            <div class="kpi-label">Overdue Tasks</div>
-        </div>
+/* ── KPI row ── */
+.admin-kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.admin-kpi {
+    background: var(--secondary-background, #fff);
+    border: 1px solid var(--main-border-color, #e5e7eb);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+    display: flex; align-items: center; gap: 16px;
+}
+.admin-kpi-icon {
+    width: 48px; height: 48px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+    flex-shrink: 0;
+}
+.admin-kpi-num  { font-size: 28px; font-weight: 700; color: var(--fg-strong, #111827); line-height: 1; }
+.admin-kpi-cap  { font-size: 11px; color: var(--fg-secondary, #6b7280); font-weight: 600;
+                  text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
 
-        <div class="admin-kpi-card {{ $totalBlocked > 0 ? 'kpi-danger' : '' }}" data-filter="at_risk">
-            <div class="kpi-icon"><i class="fa fa-fw fa-ban"></i></div>
-            <div class="kpi-value">{{ $totalBlocked }}</div>
-            <div class="kpi-label">Blocked Tasks</div>
-        </div>
+/* ── Toolbar card ── */
+.admin-toolbar-card {
+    background: var(--secondary-background, #fff);
+    border: 1px solid var(--main-border-color, #e5e7eb);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    flex-wrap: wrap;
+}
+.admin-toolbar-card input[type="text"] {
+    padding: 9px 14px; border-radius: 8px;
+    border: 1px solid var(--main-border-color, #d1d5db);
+    background: var(--primary-background, #f9fafb);
+    color: var(--fg-strong, #111827); font-size: 14px;
+    min-width: 260px; outline: none; transition: border-color .15s;
+}
+.admin-toolbar-card input[type="text"]:focus { border-color: var(--accent1); }
 
-        <div class="admin-kpi-card {{ $openClientRequests > 0 ? 'kpi-info' : '' }}">
-            <div class="kpi-icon"><i class="fa fa-fw fa-inbox"></i></div>
-            <div class="kpi-value">{{ $openClientRequests }}</div>
-            <div class="kpi-label">
-                <a href="{{ BASE_URL }}/clientportal/adminRequests" style="color:inherit; text-decoration:none;">
-                    Open Client Requests
-                </a>
-            </div>
-        </div>
+/* ── Segmented filter buttons ── */
+.segmented { display: flex; gap: 4px; background: var(--primary-background, #f3f4f6); border-radius: 8px; padding: 3px; }
+.seg {
+    padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer;
+    font-size: 13px; font-weight: 500; color: var(--fg-secondary, #6b7280);
+    background: transparent; transition: background .15s, color .15s;
+}
+.seg:hover  { background: rgba(0,0,0,.06); color: var(--fg-strong, #111827); }
+.seg.active { background: var(--secondary-background, #fff); color: var(--accent1);
+              box-shadow: 0 1px 3px rgba(0,0,0,.12); font-weight: 600; }
 
-    </div>{{-- /kpi strip --}}
+/* ── Project cards grid ── */
+.admin-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 18px; }
 
-    <div class="maincontentinner" style="margin: 0 15px;">
+/* ── Individual project card ── */
+.proj-card {
+    background: var(--secondary-background, #fff);
+    border: 1px solid var(--main-border-color, #e5e7eb);
+    border-radius: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    transition: box-shadow .2s, transform .2s;
+}
+.proj-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.12); transform: translateY(-2px); }
 
-    {{-- ── Toolbar: search + filter chips + new project ── --}}
-    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
+/* card body */
+.pc-body { padding: 20px; flex: 1; }
 
-        <input
-            type="text"
-            id="admin-project-search"
-            placeholder="Search projects or clients…"
-            class="formfield"
-            style="max-width:280px; margin:0;"
-            oninput="adminDashboard.filterCards()"
-        />
+/* card header row */
+.pc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.pc-name { font-size: 16px; font-weight: 700; color: var(--fg-strong, #111827); margin: 0 0 4px 0; line-height: 1.3; }
+.pc-client { font-size: 12px; color: var(--fg-secondary, #6b7280); display: flex; align-items: center; gap: 4px; }
+.pc-client i { opacity: .6; }
 
-        <div class="admin-filter-chips" style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="admin-chip active" data-health="all" onclick="adminDashboard.setFilter(this,'all')">All</button>
-            <button class="admin-chip" data-health="at_risk" onclick="adminDashboard.setFilter(this,'at_risk')">At Risk</button>
-            <button class="admin-chip" data-health="idle" onclick="adminDashboard.setFilter(this,'idle')">Idle</button>
-            <button class="admin-chip" data-health="on_track" onclick="adminDashboard.setFilter(this,'on_track')">On Track</button>
-        </div>
+/* progress */
+.pc-prog-label { display: flex; justify-content: space-between; font-size: 12px;
+                 color: var(--fg-secondary, #6b7280); margin-bottom: 6px; }
+.pc-prog-label .pct { font-weight: 600; color: var(--fg-strong, #111827); }
+.progress {
+    height: 6px; border-radius: 99px;
+    background: var(--main-border-color, #e5e7eb); overflow: hidden; margin-bottom: 12px;
+}
+.progress span {
+    display: block; height: 100%;
+    background: var(--accent1);
+    border-radius: 99px; transition: width .4s ease;
+}
 
-        <a href="{{ BASE_URL }}/projects/newProject" class="btn btn-primary" style="margin-left:auto;">
-            <i class="fa fa-plus"></i> New Project
+/* due date */
+.pc-due { font-size: 12px; color: #ef4444; margin-bottom: 12px; font-weight: 500; }
+
+/* members row */
+.pc-members { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pc-members > span { font-size: 12px; color: var(--fg-secondary, #6b7280); }
+
+/* avatar stack */
+.avatar-stack { display: flex; }
+.avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent1); color: #fff;
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--secondary-background, #fff);
+    margin-left: -6px;
+}
+.avatar:first-child { margin-left: 0; }
+.avatar.more { background: var(--main-border-color, #e5e7eb); color: var(--fg-secondary, #6b7280); }
+
+/* activity section */
+.pc-activity {
+    border-top: 1px solid var(--main-border-color, #e5e7eb);
+    padding: 14px 20px;
+    background: var(--primary-background, #f9fafb);
+}
+.eyebrow { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+           color: var(--fg-secondary, #6b7280); display: flex; align-items: center; gap: 6px; }
+.pc-act-row {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 10px; padding: 8px 0;
+    border-bottom: 1px solid var(--main-border-color, #e5e7eb);
+}
+.pc-act-row:last-child { border-bottom: none; padding-bottom: 0; }
+.pc-act-row .txt { font-size: 13px; color: var(--fg-strong, #111827); line-height: 1.4; flex: 1; }
+.pc-act-row .tm  { font-size: 11px; color: var(--fg-secondary, #6b7280); margin-top: 2px; }
+.pc-act-row .ai  { color: var(--fg-secondary, #6b7280); opacity: .5; font-size: 13px; flex-shrink: 0; margin-top: 3px; }
+
+/* card footer */
+.pc-foot {
+    display: flex; gap: 4px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--main-border-color, #e5e7eb);
+    background: var(--primary-background, #f9fafb);
+}
+.pc-foot a {
+    flex: 1; text-align: center;
+    padding: 7px 10px; border-radius: 7px;
+    font-size: 13px; font-weight: 500;
+    color: var(--accent1); text-decoration: none;
+    border: 1px solid transparent;
+    transition: background .15s, border-color .15s;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.pc-foot a:hover {
+    background: rgba(37,99,235,.07);
+    border-color: var(--accent1);
+}
+
+/* ── Badges ── */
+.badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 6px;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    white-space: nowrap; flex-shrink: 0;
+}
+.badge-blue      { background: rgba(37,99,235,.12);   color: #1d4ed8; }
+.badge-amber     { background: rgba(245,158,11,.14);   color: #b45309; }
+.badge-soft-red  { background: rgba(239,68,68,.12);    color: #b91c1c; }
+.badge-red       { background: rgba(239,68,68,.85);    color: #fff; }
+
+/* ── Empty state ── */
+.admin-empty { grid-column: 1/-1; text-align: center; padding: 64px 0; }
+.admin-empty i { font-size: 48px; color: var(--fg-secondary, #9ca3af); opacity: .45; margin-bottom: 14px; display: block; }
+.admin-empty p { color: var(--fg-secondary, #6b7280); font-size: 15px; }
+</style>
+
+<div class="page-head" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+    <div class="page-title">
+        <h1 style="font-size: 24px; font-weight: 700; color: var(--fg-strong); margin: 0;">Admin Dashboard</h1>
+        <p style="color: var(--fg-secondary); font-size: 14px; margin: 4px 0 0 0;">Company overview and system metrics</p>
+    </div>
+    <div class="page-actions">
+        <a href="{{ BASE_URL }}/projects/newProject" class="btn btn-primary" style="background: var(--accent1); color: #fff; border-radius: 6px; padding: 8px 16px; text-decoration: none; font-size: 14px; font-weight: 500;">
+            <i class="fa-solid fa-plus" style="margin-right: 6px;"></i> New Project
         </a>
+    </div>
+</div>
 
+{!! $tpl->displayNotification() !!}
+
+<div class="kpi-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    
+    <div class="kpi" style="background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 16px;">
+        <div class="kpi-ico" style="width: 48px; height: 48px; border-radius: 10px; background: rgba(37,99,235,0.1); color: var(--accent1); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+            <i class="fa-solid fa-briefcase"></i>
+        </div>
+        <div>
+            <div class="kpi-num" style="font-size: 28px; font-weight: 700; color: var(--fg-strong); line-height: 1;">{{ $totalActiveProjects }}</div>
+            <div class="kpi-cap" style="font-size: 12px; color: var(--fg-secondary); font-weight: 500; text-transform: uppercase; margin-top: 4px;">Active Projects</div>
+        </div>
     </div>
 
-    {{-- ── Project cards grid ── --}}
-    <div id="admin-cards-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(480px,1fr)); gap:20px;">
+    <div class="kpi" style="background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 16px; {{ $totalOverdue > 0 ? 'border-left: 4px solid #f59e0b;' : '' }}">
+        <div class="kpi-ico" style="width: 48px; height: 48px; border-radius: 10px; background: rgba(245,158,11,0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+            <i class="fa-solid fa-clock"></i>
+        </div>
+        <div>
+            <div class="kpi-num" style="font-size: 28px; font-weight: 700; color: var(--fg-strong); line-height: 1;">{{ $totalOverdue }}</div>
+            <div class="kpi-cap" style="font-size: 12px; color: var(--fg-secondary); font-weight: 500; text-transform: uppercase; margin-top: 4px;">Overdue Tasks</div>
+        </div>
+    </div>
 
-        @forelse($projectCards as $card)
+    <div class="kpi" style="background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 16px; {{ $totalBlocked > 0 ? 'border-left: 4px solid #ef4444;' : '' }}">
+        <div class="kpi-ico" style="width: 48px; height: 48px; border-radius: 10px; background: rgba(239,68,68,0.1); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+            <i class="fa-solid fa-ban"></i>
+        </div>
+        <div>
+            <div class="kpi-num" style="font-size: 28px; font-weight: 700; color: var(--fg-strong); line-height: 1;">{{ $totalBlocked }}</div>
+            <div class="kpi-cap" style="font-size: 12px; color: var(--fg-secondary); font-weight: 500; text-transform: uppercase; margin-top: 4px;">Blocked Tasks</div>
+        </div>
+    </div>
+
+    <div class="kpi" style="background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 16px; {{ $openClientRequests > 0 ? 'border-left: 4px solid var(--accent1);' : '' }}">
+        <div class="kpi-ico" style="width: 48px; height: 48px; border-radius: 10px; background: rgba(37,99,235,0.1); color: var(--accent1); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+            <i class="fa-solid fa-inbox"></i>
+        </div>
+        <div>
+            <div class="kpi-num" style="font-size: 28px; font-weight: 700; color: var(--fg-strong); line-height: 1;">{{ $openClientRequests }}</div>
+            <div class="kpi-cap" style="font-size: 12px; color: var(--fg-secondary); font-weight: 500; text-transform: uppercase; margin-top: 4px;">Open Requests</div>
+        </div>
+    </div>
+
+</div>
+
+<div class="card" style="background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 12px; box-shadow: var(--shadow-sm); padding: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+          <input type="text" id="admin-project-search" placeholder="Search projects or clients..." style="width: 300px; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border-default); background: var(--bg-surface); color: var(--fg-strong);" onkeyup="adminDashboard.filterCards()" />
+          
+          <div class="segmented">
+            <button class="seg active" data-health="all" onclick="adminDashboard.setFilter(this,'all')">All</button>
+            <button class="seg" data-health="at_risk" onclick="adminDashboard.setFilter(this,'at_risk')">At Risk</button>
+            <button class="seg" data-health="idle" onclick="adminDashboard.setFilter(this,'idle')">Idle</button>
+            <button class="seg" data-health="on_track" onclick="adminDashboard.setFilter(this,'on_track')">On Track</button>
+          </div>
+      </div>
+
+    <div id="admin-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px;">
+                @forelse($projectCards as $card)
             @php
                 $project  = $card['project'];
                 $progress = $card['progress'];
@@ -78,391 +285,94 @@
                 $health   = $card['health'];
                 $percent  = isset($progress['percent']) ? (int) round($progress['percent']) : 0;
 
-                $healthLabel = match($health) {
-                    'at_risk'  => '<span class="health-badge health-atrisk"><i class="fa fa-exclamation-triangle"></i> At Risk</span>',
-                    'idle'     => '<span class="health-badge health-idle"><i class="fa fa-pause-circle"></i> Idle</span>',
-                    default    => '<span class="health-badge health-ontrack"><i class="fa fa-check-circle"></i> On Track</span>',
+                $badgeClass = match($health) {
+                    'at_risk' => 'badge-soft-red',
+                    'idle'    => 'badge-amber',
+                    default   => 'badge-blue',
                 };
-
-                // Find the project's team lead. Prefer per-project assignment, then fall back to system role.
-                // role can be stored as string ('teamlead') or numeric key (25), so we check both forms.
-                $isTeamLead = function ($u) {
-                    $projectRole = $u['projectRole'] ?? '';
-                    $sysRole     = $u['role'] ?? '';
-                    return $projectRole === 'teamlead'
-                        || (string) $sysRole === 'teamlead'
-                        || (int) $sysRole === 25;
+                $badgeText = match($health) {
+                    'at_risk' => '<i class="fa-solid fa-triangle-exclamation"></i> AT RISK',
+                    'idle'    => '<i class="fa-solid fa-pause"></i> IDLE',
+                    default   => 'ACTIVE',
                 };
-                $teamLead = collect($team)->first($isTeamLead)
-                         ?? collect($team)->first();
             @endphp
 
-            <div
-                class="admin-project-card"
-                data-health="{{ $health }}"
-                data-name="{{ strtolower($project['name']) }}"
-                data-client="{{ strtolower($project['clientName'] ?? '') }}"
-            >
-                {{-- Card header --}}
-                <div class="card-header">
-                    <div style="flex:1; min-width:0;">
-                        <div class="card-title">
-                            <a href="{{ BASE_URL }}/projects/showProject/{{ $project['id'] }}">
-                                {{ $project['name'] }}
-                            </a>
+            <div class="proj-card admin-project-card" data-health="{{ $health }}" data-name="{{ strtolower($project['name']) }}" data-client="{{ strtolower($project['clientName'] ?? '') }}">
+                <div class="pc-body">
+                    <div class="pc-head">
+                        <div>
+                            <h3 class="pc-name">{{ $project['name'] }}</h3>
+                            @if(!empty($project['clientName']))
+                                <span class="pc-client"><i class="fa-solid fa-building"></i>{{ $project['clientName'] }}</span>
+                            @endif
                         </div>
-                        @if(!empty($project['clientName']))
-                            <div class="card-client">
-                                <i class="fa fa-fw fa-building" style="opacity:.6;"></i>
-                                {{ $project['clientName'] }}
-                            </div>
-                        @endif
+                        <span class="badge {{ $badgeClass }}">{!! $badgeText !!}</span>
                     </div>
-                    <div style="flex-shrink:0;">
-                        {!! $healthLabel !!}
-                    </div>
-                </div>
 
-                {{-- Progress bar --}}
-                <div class="card-progress-wrap">
-                    <div style="display:flex; justify-content:space-between; font-size:12px; opacity:.75; margin-bottom:4px;">
-                        <span>Progress</span>
-                        <span>{{ $percent }}%</span>
-                    </div>
-                    <div class="progress-bar-track">
-                        <div class="progress-bar-fill {{ $health === 'at_risk' ? 'fill-atrisk' : ($health === 'idle' ? 'fill-idle' : 'fill-ontrack') }}"
-                             style="width:{{ $percent }}%;"></div>
-                    </div>
+                    <div class="pc-prog-label"><span>Overall Progress</span><span class="pct">{{ $percent }}%</span></div>
+                    <div class="progress"><span style="width: {{ $percent }}%"></span></div>
+
                     @if(!empty($project['end']) && $project['end'] !== '0000-00-00')
-                        <div style="font-size:11px; opacity:.6; margin-top:4px;">
-                            Due: {{ \Carbon\Carbon::parse($project['end'])->format('M j, Y') }}
+                        <div class="pc-due">Due: {{ \Carbon\Carbon::parse($project['end'])->format('M j, Y') }}</div>
+                    @endif
+
+                    <div class="pc-members">
+                        <div class="avatar-stack">
+                            @foreach(array_slice($team, 0, 4) as $member)
+                                <div class="avatar" title="{{ ($member['firstname'] ?? '') }} {{ ($member['lastname'] ?? '') }}">
+                                    {{ strtoupper(substr($member['firstname'] ?? '?', 0, 1)) }}{{ strtoupper(substr($member['lastname'] ?? '', 0, 1)) }}
+                                </div>
+                            @endforeach
+                            @if(count($team) > 4)
+                                <div class="avatar more">+{{ count($team) - 4 }}</div>
+                            @endif
                         </div>
-                    @endif
-                </div>
+                        <span>{{ count($team) }} member{{ count($team) !== 1 ? 's' : '' }}</span>
 
-                {{-- Stats row --}}
-                @if($card['overdueCount'] > 0 || $card['blockedCount'] > 0)
-                <div class="card-stats-row">
-                    @if($card['overdueCount'] > 0)
-                        <span class="stat-badge stat-overdue">
-                            <i class="fa fa-clock"></i> {{ $card['overdueCount'] }} overdue
-                        </span>
-                    @endif
-                    @if($card['blockedCount'] > 0)
-                        <span class="stat-badge stat-blocked">
-                            <i class="fa fa-ban"></i> {{ $card['blockedCount'] }} blocked
-                        </span>
-                    @endif
-                </div>
-                @endif
-
-                {{-- Team summary — avatar stack + count only --}}
-                @if(!empty($team))
-                <div class="card-section card-team-summary">
-                    <div class="team-avatar-stack">
-                        @foreach(array_slice($team, 0, 4) as $member)
-                            <div class="team-avatar-bubble"
-                                 title="{{ ($member['firstname'] ?? '') }} {{ ($member['lastname'] ?? '') }} — {{ ucfirst($member['projectRole'] ?? $member['role'] ?? 'Member') }}">
-                                {{ strtoupper(substr($member['firstname'] ?? '?', 0, 1)) }}{{ strtoupper(substr($member['lastname'] ?? '', 0, 1)) }}
-                            </div>
-                        @endforeach
-                        @if(count($team) > 4)
-                            <div class="team-avatar-bubble team-avatar-more">
-                                +{{ count($team) - 4 }}
+                        @if(($card['overdueCount'] ?? 0) > 0 || ($card['blockedCount'] ?? 0) > 0)
+                            <div style="margin-left: auto; display: flex; gap: 8px;">
+                                @if(($card['overdueCount'] ?? 0) > 0)
+                                    <span class="badge badge-soft-red"><i class="fa-solid fa-clock"></i> {{ $card['overdueCount'] }}</span>
+                                @endif
+                                @if(($card['blockedCount'] ?? 0) > 0)
+                                    <span class="badge badge-red"><i class="fa-solid fa-ban"></i> {{ $card['blockedCount'] }}</span>
+                                @endif
                             </div>
                         @endif
                     </div>
-                    <span class="team-count-label">
-                        <i class="fa fa-fw fa-users"></i> {{ count($team) }} {{ count($team) === 1 ? 'member' : 'members' }}
-                    </span>
                 </div>
-                @endif
 
-                {{-- Recent activity --}}
                 @if(!empty($card['recentActivity']))
-                <div class="card-section">
-                    <div class="card-section-title">
-                        <i class="fa fa-fw fa-bolt"></i> Recent Activity
+                    <div class="pc-activity">
+                        <span class="eyebrow"><i class="fa-solid fa-bolt"></i> Recent Activity</span>
+                        <div style="margin-top: 12px">
+                            @foreach(array_slice($card['recentActivity'], 0, 2) as $activity)
+                                <div class="pc-act-row">
+                                    <div class="txt">
+                                        <div><b>{{ $activity['editorFirstname'] }} {{ $activity['editorLastname'] }}</b> {{ \Illuminate\Support\Str::limit($activity['headline'] ?? '', 45) }}</div>
+                                        <div class="tm">{{ \Carbon\Carbon::parse($activity['modified'])->diffForHumans() }}</div>
+                                    </div>
+                                    <i class="fa-solid fa-clock-rotate-left ai"></i>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
-                    <ul class="card-activity-list">
-                        @foreach($card['recentActivity'] as $activity)
-                            <li>
-                                <span class="activity-who">{{ $activity['editorFirstname'] }} {{ $activity['editorLastname'] }}</span>
-                                <span class="activity-what">{{ \Illuminate\Support\Str::limit($activity['headline'], 45) }}</span>
-                                <span class="activity-when">{{ \Carbon\Carbon::parse($activity['modified'])->diffForHumans() }}</span>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
                 @endif
 
-                {{-- Upcoming milestones --}}
-                @if(!empty($card['upcomingMilestones']))
-                <div class="card-section">
-                    <div class="card-section-title">
-                        <i class="fa fa-fw fa-flag"></i> Upcoming Milestones
-                    </div>
-                    <ul class="card-milestone-list">
-                        @foreach($card['upcomingMilestones'] as $ms)
-                            <li>
-                                <span class="ms-name">{{ \Illuminate\Support\Str::limit($ms['headline'], 40) }}</span>
-                                <span class="ms-date">{{ \Carbon\Carbon::parse($ms['date'])->format('M j') }}</span>
-                            </li>
-                        @endforeach
-                    </ul>
+                <div class="pc-foot">
+                    <a href="{{ BASE_URL }}/projects/showProject/{{ $project['id'] }}"><i class="fa-solid fa-eye"></i> View Project</a>
+                    <a href="{{ BASE_URL }}/tickets/showKanban"><i class="fa-solid fa-list-check"></i> Boards</a>
                 </div>
-                @endif
-
-                {{-- Card footer actions --}}
-                <div class="card-footer-actions">
-                    <a href="{{ BASE_URL }}/projects/showProject/{{ $project['id'] }}" class="btn btn-default btn-sm">
-                        <i class="fa fa-folder-open"></i> View Project
-                    </a>
-                    <a href="{{ BASE_URL }}/tickets/roadmap?projectId={{ $project['id'] }}" class="btn btn-default btn-sm">
-                        <i class="fa fa-chart-gantt"></i> Timeline
-                    </a>
-                    @if($teamLead)
-                        <a href="{{ BASE_URL }}/oneonone/newSession?employeeId={{ $teamLead['id'] }}" class="btn btn-default btn-sm">
-                            <i class="fa fa-handshake"></i> 1:1 with {{ $teamLead['firstname'] ?? 'Lead' }}
-                        </a>
-                    @endif
-                </div>
-
             </div>
         @empty
-            <div style="grid-column:1/-1; text-align:center; padding:60px 0; opacity:.5;">
-                <i class="fa fa-briefcase fa-3x" style="margin-bottom:12px; display:block;"></i>
-                No active projects found.
-                <br>
-                <a href="{{ BASE_URL }}/projects/newProject" class="btn btn-primary" style="margin-top:16px;">
-                    Create your first project
-                </a>
+            <div style="grid-column: 1/-1; text-align: center; padding: 60px 0;">
+                <i class="fa-solid fa-briefcase" style="font-size: 48px; color: var(--fg-secondary); opacity: 0.5; margin-bottom: 16px;"></i>
+                <p style="color: var(--fg-secondary); font-size: 15px;">No active projects found.</p>
+                <a href="{{ BASE_URL }}/projects/newProject" class="btn btn-primary" style="margin-top: 16px;">Create your first project</a>
             </div>
         @endforelse
-
-    </div>{{-- /grid --}}
-
-    </div>{{-- /maincontentinner --}}
-
-</div>{{-- /maincontent --}}
-
-
-<style>
-/* ── Admin Dashboard ── */
-.admin-kpi-strip {
-    margin-bottom: 28px;
-}
-
-.admin-kpi-card {
-    background: var(--glass-background);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    border: var(--glass-border);
-    border-radius: var(--box-radius, 8px);
-    box-shadow: var(--large-shadow);
-    padding: 22px 26px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    cursor: pointer;
-    transition: box-shadow .15s, transform .15s;
-}
-.admin-kpi-card:hover { box-shadow: var(--regular-shadow); transform: translateY(-2px); }
-.admin-kpi-card .kpi-icon { font-size: 22px; opacity: .45; margin-bottom: 6px; }
-.admin-kpi-card .kpi-value { font-size: 36px; font-weight: 700; line-height: 1; }
-.admin-kpi-card .kpi-label { font-size: 13px; opacity: .65; margin-top: 4px; }
-.admin-kpi-card.kpi-warn  { border-left: 4px solid #f0ad4e; }
-.admin-kpi-card.kpi-danger{ border-left: 4px solid #d9534f; }
-.admin-kpi-card.kpi-info  { border-left: 4px solid var(--accent1, #4a9eff); }
-
-/* Filter chips */
-.admin-chip {
-    padding: 5px 14px;
-    border-radius: 20px;
-    border: 1px solid var(--accent1, #4a9eff);
-    background: transparent;
-    color: var(--primary-font-color);
-    cursor: pointer;
-    font-size: 13px;
-    transition: background .15s, color .15s;
-}
-.admin-chip.active,
-.admin-chip:hover {
-    background: var(--accent1, #4a9eff);
-    color: #fff;
-}
-
-/* Project card */
-.admin-project-card {
-    background: var(--secondary-background, #fff);
-    border-radius: var(--box-radius, 8px);
-    box-shadow: var(--min-shadow);
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    overflow: hidden;
-    transition: box-shadow .15s;
-}
-.admin-project-card:hover { box-shadow: var(--regular-shadow); }
-.admin-project-card.hidden { display: none !important; }
-
-.card-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 18px 20px 12px;
-    border-bottom: 1px solid rgba(0,0,0,.06);
-}
-.card-title {
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 1.3;
-}
-.card-title a { color: inherit; text-decoration: none; }
-.card-title a:hover { color: var(--accent1, #4a9eff); }
-.card-client { font-size: 12px; opacity: .6; margin-top: 3px; }
-
-/* Health badge */
-.health-badge {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 20px;
-    white-space: nowrap;
-}
-.health-atrisk  { background: rgba(217,83,79,.12); color: #d9534f; }
-.health-idle    { background: rgba(240,173,78,.12); color: #c8860a; }
-.health-ontrack { background: rgba(92,184,92,.12);  color: #3d9140; }
-
-/* Progress bar */
-.card-progress-wrap { padding: 12px 20px; border-bottom: 1px solid rgba(0,0,0,.06); }
-.progress-bar-track {
-    height: 7px;
-    border-radius: 4px;
-    background: rgba(0,0,0,.08);
-    overflow: hidden;
-}
-.progress-bar-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width .4s ease;
-}
-.fill-ontrack { background: #5cb85c; }
-.fill-idle    { background: #f0ad4e; }
-.fill-atrisk  { background: #d9534f; }
-
-/* Stats badges */
-.card-stats-row { display: flex; gap: 8px; padding: 8px 20px; flex-wrap: wrap; }
-.stat-badge {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 20px;
-}
-.stat-overdue { background: rgba(240,173,78,.15); color: #c8860a; }
-.stat-blocked { background: rgba(217,83,79,.15);  color: #d9534f; }
-
-/* Card sections */
-.card-section {
-    padding: 12px 20px;
-    border-top: 1px solid rgba(0,0,0,.05);
-}
-.card-section-title {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .5px;
-    opacity: .5;
-    margin-bottom: 8px;
-}
-
-/* Team summary */
-.card-team-summary {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.team-avatar-stack {
-    display: flex;
-    flex-direction: row;
-}
-.team-avatar-bubble {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: var(--accent1, #4a9eff);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    border: 2px solid var(--secondary-background, #fff);
-    margin-left: -8px;
-    cursor: default;
-    transition: transform .15s;
-}
-.team-avatar-bubble:first-child { margin-left: 0; }
-.team-avatar-bubble:hover { transform: translateY(-3px); z-index: 2; }
-.team-avatar-more {
-    background: rgba(0,0,0,.18);
-    font-size: 10px;
-}
-.team-count-label {
-    font-size: 13px;
-    opacity: .65;
-}
-
-/* Activity */
-.card-activity-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-.card-activity-list li {
-    font-size: 12px;
-    display: flex;
-    gap: 6px;
-    align-items: baseline;
-    flex-wrap: wrap;
-}
-.activity-who   { font-weight: 600; opacity: .85; white-space: nowrap; }
-.activity-what  { opacity: .75; flex: 1; }
-.activity-when  { opacity: .45; white-space: nowrap; font-size: 11px; }
-
-/* Milestones */
-.card-milestone-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-.card-milestone-list li {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    align-items: center;
-}
-.ms-name { opacity: .85; }
-.ms-date { font-size: 11px; opacity: .55; white-space: nowrap; }
-
-/* Footer actions */
-.card-footer-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    padding: 12px 20px 16px;
-    border-top: 1px solid rgba(0,0,0,.06);
-    margin-top: auto;
-}
-.card-footer-actions .btn { font-size: 12px; }
-</style>
+    </div>
+</div>
 
 <script>
 var adminDashboard = (function () {
@@ -470,8 +380,12 @@ var adminDashboard = (function () {
 
     function setFilter(btn, filter) {
         activeFilter = filter;
-        document.querySelectorAll('.admin-chip').forEach(function (c) {
-            c.classList.toggle('active', c.dataset.health === filter);
+        document.querySelectorAll('.seg').forEach(function (c) {
+            if (c.dataset.health === filter) {
+                c.classList.add('active');
+            } else {
+                c.classList.remove('active');
+            }
         });
         applyFilters();
     }
@@ -487,7 +401,7 @@ var adminDashboard = (function () {
             var matchSearch = !search
                 || (card.dataset.name || '').includes(search)
                 || (card.dataset.client || '').includes(search);
-            card.classList.toggle('hidden', !(matchHealth && matchSearch));
+            card.style.display = (matchHealth && matchSearch) ? 'flex' : 'none';
         });
     }
 
@@ -496,3 +410,4 @@ var adminDashboard = (function () {
 </script>
 
 @endsection
+
