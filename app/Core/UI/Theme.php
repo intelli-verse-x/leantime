@@ -375,38 +375,10 @@ class Theme
         // Reset .ini data
         $this->iniData = [];
 
-        if (session()->exists('usersettings.theme') && Auth::isLoggedIn()) {
-            return session('usersettings.theme');
-        }
-
-        // Return user specific theme, if active
-        // This is an active logged in session.
-        if (Auth::isLoggedIn()) {
-            // User is logged in, we don't have a theme yet, check settings
-            $theme = $this->settingsRepo->getSetting('usersettings.'.session('userdata.id').'.theme');
-            if ($theme !== false) {
-                $this->setActive($theme);
-
-                return $theme;
-            }
-        }
-
-        // No generic theme set. Check if cookie is set
-        if (isset($_COOKIE['theme'])) {
-            $this->setActive($_COOKIE['theme']);
-
-            return $_COOKIE['theme'];
-        }
-
-        // Return configured
-        // Nothing set, get default theme from config
-        if (isset($this->config->defaultTheme) && ! empty($this->config->defaultTheme)) {
-            $this->setActive($this->config->defaultTheme);
-
-            return $this->config->defaultTheme;
-        }
-
-        // Return default
+        // TT Portal is a single-brand portal — always use the 'default' theme.
+        // Color mode (light/dark) is controlled separately via getColorMode().
+        // This prevents users who had a legacy theme (e.g. 'minimal') stored in
+        // their DB settings or cookies from getting the old unbranded UI.
         return static::DEFAULT;
     }
 
