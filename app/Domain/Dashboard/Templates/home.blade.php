@@ -110,6 +110,7 @@
         border: none !important;
         box-shadow: none !important;
         padding: 0 !important;
+        overflow: visible !important;
     }
 </style>
 
@@ -121,17 +122,17 @@
         leantime.widgetController.initGrid();
 
         // Ensure welcome widget is tall enough to display KPI cards properly.
-        // Existing users may have an old smaller height saved — upgrade them to h=6 (180px).
+        // Force all users to h=9 (270px) so greeting + cards show without any scroll.
         setTimeout(function() {
             var welcomeEl = document.getElementById('widget_wrapper_welcome');
             if (welcomeEl) {
                 var currentH = parseInt(welcomeEl.getAttribute('gs-h') || '3', 10);
-                if (currentH < 6) {
+                if (currentH < 9) {
                     var gs = document.querySelector('.grid-stack') && document.querySelector('.grid-stack').gridstack;
                     if (gs) {
                         gs.update(welcomeEl, {
-                            h: 6,
-                            minH: 4
+                            h: 9,
+                            minH: 7
                         });
                         leantime.widgetController.saveGrid();
                     }
