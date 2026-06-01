@@ -50,7 +50,7 @@ class Widgets
             'name' => 'widgets.title.welcome',
             'description' => 'widgets.descriptions.welcome',
             'widgetUrl' => BASE_URL.'/widgets/welcome/get',
-            'gridHeight' => 5,
+            'gridHeight' => 6,
             'gridWidth' => 12,
             'gridMinHeight' => 4,
             'gridMinWidth' => 6,

@@ -121,16 +121,16 @@
         leantime.widgetController.initGrid();
 
         // Ensure welcome widget is tall enough to display KPI cards properly.
-        // Existing users may have the old h=3 (90px) saved — upgrade them to h=5 (150px).
+        // Existing users may have an old smaller height saved — upgrade them to h=6 (180px).
         setTimeout(function() {
             var welcomeEl = document.getElementById('widget_wrapper_welcome');
             if (welcomeEl) {
                 var currentH = parseInt(welcomeEl.getAttribute('gs-h') || '3', 10);
-                if (currentH < 5) {
+                if (currentH < 6) {
                     var gs = document.querySelector('.grid-stack') && document.querySelector('.grid-stack').gridstack;
                     if (gs) {
                         gs.update(welcomeEl, {
-                            h: 5,
+                            h: 6,
                             minH: 4
                         });
                         leantime.widgetController.saveGrid();
