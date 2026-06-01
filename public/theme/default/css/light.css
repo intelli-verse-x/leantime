@@ -1018,7 +1018,7 @@ body {
 }
 body {
   font-family: var(--font-sans);
-  background: var(--bg-page);
+  background: #f5f7f9 !important; /* explicit — prevents mainwrapper gradient bleed */
   color: var(--fg-default);
   font-size: var(--fs-base);
   -webkit-font-smoothing: antialiased;
@@ -1060,7 +1060,7 @@ a {
 .hdr {
   height: var(--header-h);
   flex: 0 0 var(--header-h);
-  background: var(--bg-surface);
+  background: #ffffff !important; /* explicit — prevents gradient bleed */
   border-bottom: 1px solid var(--border-default);
   display: flex;
   align-items: center;
@@ -1182,7 +1182,7 @@ a {
 .side {
   width: var(--sidebar-w);
   flex: 0 0 var(--sidebar-w);
-  background: var(--bg-surface);
+  background: #ffffff !important; /* explicit white — prevents mainwrapper gradient from bleeding through */
   border-right: 1px solid var(--border-default);
   padding: 16px 14px;
   display: flex;
@@ -1290,13 +1290,13 @@ a {
 
 /* ---------------- Content ---------------- */
 .app-body {
-  background: var(--bg-page);
+  background: #f5f7f9 !important;
 }
 .content {
   flex: 1;
   overflow-y: auto;
   min-width: 0;
-  background: var(--bg-page);
+  background: #f5f7f9 !important;
 }
 .content-inner {
   max-width: var(--content-max);
@@ -1858,7 +1858,29 @@ ul.headmenu > li.open {
   border-left-color: var(--accent, #2563eb) !important;
 }
 
-/* --- SIDEBAR FIXES --- */
+/* --- LAYOUT BACKGROUND FIXES --- */
+/*
+ * Leantime's structure.css applies:
+ *   .mainwrapper { background: var(--header-gradient); background-attachment: fixed; }
+ *   .rightpanel  { background-size: contain; }  (no background-color)
+ *
+ * In TT Portal light mode we want solid backgrounds everywhere.
+ * Use explicit hex values here (not CSS vars) to guarantee they apply
+ * even if variable resolution is delayed or fails on the live server.
+ */
+
+/* Override the fixed gradient on the page wrapper */
+.mainwrapper {
+  background: #1a2744 !important; /* TT Portal dark-navy: shows in sidebar gap if any */
+}
+
+/* Content panel: always solid light gray */
+.rightpanel,
+.maincontentinner,
+.content.rightpanel {
+  background: #f5f7f9 !important;
+}
+
 /* Remove polygonal/geometric background from the main content panel */
 .rightpanel:before {
   display: none !important;

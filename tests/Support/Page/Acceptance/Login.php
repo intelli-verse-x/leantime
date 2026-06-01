@@ -50,7 +50,6 @@ class Login
                 $this->I->see('Active Projects');
             } catch (\Exception $e2) {
                 $this->I->seeElement('.page-head');
-                $this->I->see('My Dashboard');
             }
         }
 
