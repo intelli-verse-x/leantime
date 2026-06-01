@@ -22,7 +22,7 @@
   --primary-content-bg-opacity: 0.15;
   --main-titles-color: #000000;
 
-  --primary-background: rgba(255, 255, 255, 0.8);
+  --primary-background: rgba(255, 255, 255, 1);
   --secondary-background: rgba(255, 255, 255, 1);
   --layered-background: rgba(255, 255, 255, 0.9);
   --light-layered-background: rgba(255, 255, 255, 0.4);
@@ -43,7 +43,7 @@
   --secondary-color: var(--accent2);
 
   --main-bg: var(--primary-background);
-  --left-panel-bg: transparent;
+  --left-panel-bg: #ffffff;
   --content-bg: var(--secondary-background);
 
   --glass-blur: blur(8px);
@@ -86,12 +86,9 @@
   --input-background: #fff;
 
   --header-action-hover-color: var(--neutral);
-  --header-bg-color: var(--accent1);
-  --header-gradient: linear-gradient(
-    135deg,
-    var(--accent1) 20%,
-    var(--accent2) 90%
-  );
+  --header-bg-color: #ffffff;
+  /* Light mode: no gradient — flat page background */
+  --header-gradient: #f5f7f9;
   --element-gradient: linear-gradient(
     135deg,
     var(--accent1) 20%,

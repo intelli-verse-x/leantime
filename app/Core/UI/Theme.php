@@ -283,7 +283,8 @@ class Theme
 
         if (
             $parsedColorSchemes['companyColors']['primaryColor'] == $parsedColorSchemes['themeDefault']['primaryColor'] &&
-            $parsedColorSchemes['companyColors']['secondaryColor'] == $parsedColorSchemes['themeDefault']['secondaryColor']) {
+            $parsedColorSchemes['companyColors']['secondaryColor'] == $parsedColorSchemes['themeDefault']['secondaryColor']
+        ) {
             unset($parsedColorSchemes['companyColors']);
         }
 
@@ -310,7 +311,7 @@ class Theme
                 return session('usersettings.backgroundImage') ?: null;
             }
 
-            $image = $this->settingsRepo->getSetting('usersettings.'.session('userdata.id').'.backgroundImage');
+            $image = $this->settingsRepo->getSetting('usersettings.' . session('userdata.id') . '.backgroundImage');
             session(['usersettings.backgroundImage' => $image ?: '']);
 
             return $image ?: null;
@@ -322,8 +323,8 @@ class Theme
     public function setBackgroundImage(string $url): void
     {
         if (Auth::isLoggedIn()) {
-            $this->settingsRepo->saveSetting('usersettings.'.session('userdata.id').'.backgroundType', 'image');
-            $this->settingsRepo->saveSetting('usersettings.'.session('userdata.id').'.backgroundImage', $url);
+            $this->settingsRepo->saveSetting('usersettings.' . session('userdata.id') . '.backgroundType', 'image');
+            $this->settingsRepo->saveSetting('usersettings.' . session('userdata.id') . '.backgroundImage', $url);
             session(['usersettings.backgroundType' => 'image']);
             session(['usersettings.backgroundImage' => $url]);
         }
@@ -342,7 +343,7 @@ class Theme
                 return session('usersettings.backgroundType') ?: 'gradient';
             }
 
-            $type = $this->settingsRepo->getSetting('usersettings.'.session('userdata.id').'.backgroundType');
+            $type = $this->settingsRepo->getSetting('usersettings.' . session('userdata.id') . '.backgroundType');
             session(['usersettings.backgroundType' => $type ?: 'gradient']);
 
             return $type ?: 'gradient';
@@ -354,10 +355,10 @@ class Theme
     public function setBackgroundType(string $type): void
     {
         if (Auth::isLoggedIn()) {
-            $this->settingsRepo->saveSetting('usersettings.'.session('userdata.id').'.backgroundType', $type);
+            $this->settingsRepo->saveSetting('usersettings.' . session('userdata.id') . '.backgroundType', $type);
             session(['usersettings.backgroundType' => $type]);
             if ($type == 'gradient') {
-                $this->settingsRepo->deleteSetting('usersettings.'.session('userdata.id').'.backgroundImage');
+                $this->settingsRepo->deleteSetting('usersettings.' . session('userdata.id') . '.backgroundImage');
                 session(['usersettings.backgroundImage' => '']);
             }
         }
@@ -382,7 +383,7 @@ class Theme
         // This is an active logged in session.
         if (Auth::isLoggedIn()) {
             // User is logged in, we don't have a theme yet, check settings
-            $theme = $this->settingsRepo->getSetting('usersettings.'.session('userdata.id').'.theme');
+            $theme = $this->settingsRepo->getSetting('usersettings.' . session('userdata.id') . '.theme');
             if ($theme !== false) {
                 $this->setActive($theme);
 
@@ -424,7 +425,7 @@ class Theme
 
         if (Auth::isLoggedIn()) {
             // User is logged in, we don't have a theme yet, check settings
-            $colorMode = $this->settingsRepo->getSetting('usersettings.'.session('userdata.id').'.colorMode');
+            $colorMode = $this->settingsRepo->getSetting('usersettings.' . session('userdata.id') . '.colorMode');
             if ($colorMode !== false) {
                 $this->setColorMode($colorMode);
 
@@ -465,7 +466,7 @@ class Theme
         if (Auth::isLoggedIn()) {
             // User is logged in, we don't have a theme yet, check settings
 
-            $colorScheme = $this->settingsRepo->getSetting('usersettings.'.session('userdata.id').'.colorScheme');
+            $colorScheme = $this->settingsRepo->getSetting('usersettings.' . session('userdata.id') . '.colorScheme');
             if ($colorScheme !== false) {
                 $this->setColorScheme($colorScheme);
 
@@ -490,7 +491,6 @@ class Theme
 
             return 'themeDefault';
         }
-
     }
 
     /**
@@ -511,7 +511,7 @@ class Theme
         if (Auth::isLoggedIn()) {
 
             // User is logged in, we don't have a theme yet, check settings
-            $themeFont = $this->settingsRepo->getSetting('usersettings.'.session('userdata.id').'.themeFont');
+            $themeFont = $this->settingsRepo->getSetting('usersettings.' . session('userdata.id') . '.themeFont');
             if ($themeFont !== false) {
                 $this->setFont($themeFont);
 
@@ -548,7 +548,7 @@ class Theme
         }
 
         // not a valid theme. Use default
-        if (! is_dir(ROOT.'/theme/'.$id) || ! file_exists(ROOT.'/theme/'.$id.'/'.static::DEFAULT_INI.'.ini')) {
+        if (! is_dir(ROOT . '/theme/' . $id) || ! file_exists(ROOT . '/theme/' . $id . '/' . static::DEFAULT_INI . '.ini')) {
             $id = static::DEFAULT;
         }
 
@@ -559,7 +559,7 @@ class Theme
 
         EventDispatcher::addFilterListener(
             'leantime.core.http.httpkernel.handle.beforeSendResponse',
-            fn ($response) => tap($response, fn (Response $response) => $response->headers->setCookie(
+            fn($response) => tap($response, fn(Response $response) => $response->headers->setCookie(
                 Cookie::create('theme')
                     ->withValue($id)
                     ->withExpires(time() + 60 * 60 * 24 * 30)
@@ -598,7 +598,7 @@ class Theme
 
         EventDispatcher::addFilterListener(
             'leantime.core.http.httpkernel.handle.beforeSendResponse',
-            fn ($response) => tap($response, fn (Response $response) => $response->headers->setCookie(
+            fn($response) => tap($response, fn(Response $response) => $response->headers->setCookie(
                 Cookie::create('colorMode')
                     ->withValue($colorMode)
                     ->withExpires(time() + 60 * 60 * 24 * 30)
@@ -627,7 +627,7 @@ class Theme
 
         EventDispatcher::addFilterListener(
             'leantime.core.http.httpkernel.handle.beforeSendResponse',
-            fn ($response) => tap($response, fn (Response $response) => $response->headers->setCookie(
+            fn($response) => tap($response, fn(Response $response) => $response->headers->setCookie(
                 Cookie::create('themeFont')
                     ->withValue($font)
                     ->withExpires(time() + 60 * 60 * 24 * 30)
@@ -657,7 +657,7 @@ class Theme
 
         EventDispatcher::addFilterListener(
             'leantime.core.http.httpkernel.handle.beforeSendResponse',
-            fn ($response) => tap($response, fn (Response $response) => $response->headers->setCookie(
+            fn($response) => tap($response, fn(Response $response) => $response->headers->setCookie(
                 Cookie::create('colorScheme')
                     ->withValue($colorScheme)
                     ->withExpires(time() + 60 * 60 * 24 * 30)
@@ -680,7 +680,7 @@ class Theme
 
         $themes = [];
 
-        $handle = opendir(ROOT.'/theme');
+        $handle = opendir(ROOT . '/theme');
         if ($handle === false) {
             return $themes;
         }
@@ -692,9 +692,9 @@ class Theme
 
             // Ready theme ini
             $themeIni = ROOT
-                .'/theme/'
-                .$themeDir
-                .'/theme.ini';
+                . '/theme/'
+                . $themeDir
+                . '/theme.ini';
 
             if (file_exists($themeIni)) {
                 $iniData = parse_ini_file(
@@ -720,7 +720,7 @@ class Theme
     public function getDir(): string
     {
 
-        return ROOT.'/theme/'.$this->getActive();
+        return ROOT . '/theme/' . $this->getActive();
     }
 
     /**
@@ -731,7 +731,7 @@ class Theme
     public function getDefaultDir(): string
     {
 
-        return ROOT.'/theme/'.static::DEFAULT;
+        return ROOT . '/theme/' . static::DEFAULT;
     }
 
     /**
@@ -742,7 +742,7 @@ class Theme
     public function getUrl(): string
     {
 
-        return $this->config->appUrl.'/theme/'.$this->getActive();
+        return $this->config->appUrl . '/theme/' . $this->getActive();
     }
 
     /**
@@ -753,7 +753,7 @@ class Theme
     public function getDefaultUrl(): string
     {
 
-        return ROOT.'/theme/'.static::DEFAULT;
+        return ROOT . '/theme/' . static::DEFAULT;
     }
 
     /**
@@ -809,12 +809,18 @@ class Theme
             return false;
         }
 
-        if (file_exists($this->getDir().'/'.$assetType.'/'.$fileName.'.min.'.$assetType)) {
-            return $this->getUrl().'/'.$assetType.'/'.$fileName.'.min.'.$assetType.'?v='.$this->appSettings->appVersion;
+        $minFile = $this->getDir() . '/' . $assetType . '/' . $fileName . '.min.' . $assetType;
+        if (file_exists($minFile)) {
+            $v = filemtime($minFile) ?: $this->appSettings->appVersion;
+
+            return $this->getUrl() . '/' . $assetType . '/' . $fileName . '.min.' . $assetType . '?v=' . $v;
         }
 
-        if (file_exists($this->getDir().'/'.$assetType.'/'.$fileName.'.'.$assetType)) {
-            return $this->getUrl().'/'.$assetType.'/'.$fileName.'.'.$assetType.'?v='.$this->appSettings->appVersion;
+        $file = $this->getDir() . '/' . $assetType . '/' . $fileName . '.' . $assetType;
+        if (file_exists($file)) {
+            $v = filemtime($file) ?: $this->appSettings->appVersion;
+
+            return $this->getUrl() . '/' . $assetType . '/' . $fileName . '.' . $assetType . '?v=' . $v;
         }
 
         return false;
@@ -843,7 +849,7 @@ class Theme
             } catch (Exception $e) {
                 report($e);
 
-                return $this->language->__('theme.'.$this->getActive().'name');
+                return $this->language->__('theme.' . $this->getActive() . 'name');
             }
         }
 
@@ -851,7 +857,7 @@ class Theme
             return $this->iniData['name'];
         }
 
-        return $this->language->__('theme.'.$this->getActive().'name');
+        return $this->language->__('theme.' . $this->getActive() . 'name');
     }
 
     /**
@@ -891,8 +897,10 @@ class Theme
         // Logo will be in there. Session will be renewed when new logo is updated or theme is changed
 
         $logoPath = false;
-        if (session()->exists('companysettings.logoPath') === false
-            || session('companysettings.logoPath') == '') {
+        if (
+            session()->exists('companysettings.logoPath') === false
+            || session('companysettings.logoPath') == ''
+        ) {
 
             $logoPath = $this->settingsRepo->getSetting('companysettings.logoPath');
 
@@ -919,11 +927,9 @@ class Theme
 
             // If we can't find a logo in the db, the company doesn't have a logo. Stop trying
             session(['companysettings.logoPath' => false]);
-
         }
 
         return session('companysettings.logoPath');
-
     }
 
     /**
@@ -1011,7 +1017,6 @@ class Theme
             $secondary = $colorSchemes[$colorscheme]['secondaryColor'];
             session(['usersettings.colors.secondaryColor' => $secondary]);
         }
-
     }
 
     /**
@@ -1082,13 +1087,13 @@ class Theme
      */
     private function readIniData(): void
     {
-        if (! file_exists(ROOT.'/theme/'.$this->getActive().'/'.static::DEFAULT_INI.'.ini')) {
-            report('Configuration file for theme '.$this->getActive().' not found');
+        if (! file_exists(ROOT . '/theme/' . $this->getActive() . '/' . static::DEFAULT_INI . '.ini')) {
+            report('Configuration file for theme ' . $this->getActive() . ' not found');
             $this->clearCache();
             $this->setActive('default');
         }
         $this->iniData = parse_ini_file(
-            ROOT.'/theme/'.$this->getActive().'/'.static::DEFAULT_INI.'.ini',
+            ROOT . '/theme/' . $this->getActive() . '/' . static::DEFAULT_INI . '.ini',
             true,
             INI_SCANNER_TYPED
         );
