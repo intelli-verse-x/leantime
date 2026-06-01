@@ -40,6 +40,6 @@ class ShowDashboard extends Controller
 
         $this->tpl->assign('projects', $projects);
 
-        return $this->tpl->display('clientportal.showDashboard');
+        return $this->tpl->display('clientportal.showDashboard', 'clientportal');
     }
 }

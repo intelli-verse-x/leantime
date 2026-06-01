@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html dir="{{ __('language.direction') }}" lang="{{ __('language.code') }}">
+<html dir="{{ __('language.direction') }}" lang="{{ __('language.code') }}" data-theme="{{ app(\Leantime\Core\UI\Theme::class)->getColorMode() }}">
 
 <head>
     @include('global::sections.header')
@@ -11,43 +11,37 @@
     @include('global::sections.appAnnouncement')
 
     @php
-    // Sidebar defaults to OPEN. Only respect 'closed' if the user explicitly
-    // set it that way via the hamburger toggle — every other value (null,
-    // empty string, missing key, anything truthy) renders open.
     $ltMenuState = session('menuState') === 'closed' ? 'closed' : 'open';
     @endphp
-    <div class="mainwrapper menu{{ $ltMenuState }}">
+    <div class="mainwrapper app menu{{ $ltMenuState }}">
 
-        <div class="header">
-
-            <div class="headerinner">
-                <a class="btnmenu" href="javascript:void(0);"></a>
-
-                <a class="barmenu" href="javascript:void(0);" aria-label="Toggle menu">
-                    <span class="fa fa-bars"></span>
-                </a>
-
-                <div class="logo">
-                    <a
-                        href="{{ BASE_URL }}"
-                        style="background-image: url('{{ BASE_URL }}/dist/images/logo.svg')">&nbsp;</a>
-                </div>
-
+        <header class="hdr">
+            <button class="hdr-icon barmenu" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+              <div class="hdr-logo" style="display:flex; align-items:center; gap:8px;">
+                  <a href="{{ BASE_URL }}" style="display:flex; align-items:center; text-decoration: none;">
+                      <span style="font-weight: 600; font-size: 19px; color: var(--fg-strong, #111827); letter-spacing: 0.5px; padding-left: 14px;">Toba Tech Portal</span>
+                  </a>
+                  <a href="{{ BASE_URL }}/dashboard/home"
+                     class="hdr-icon"
+                     style="display:flex !important; align-items:center !important; justify-content:center !important; text-decoration:none;"
+                     data-tippy-content="Back to Home Dashboard">
+                      <i class="fa-solid fa-house" style="font-size:16px;"></i>
+                  </a>
+              </div>
+            <div class="hdr-spacer"></div>
+            <div class="hdr-actions">
                 @include('menu::headMenu')
-            </div><!-- headerinner -->
-
-        </div><!-- header -->
-
-
-
-        <div class="overlay" style="position: relative">
-            <div class="leftpanel">
-                <div class="leftmenu">
-                    @include('menu::menu')
-                </div><!-- leftmenu -->
             </div>
-            <div class="rightpanel {{ $section }}">
-                <div class="primaryContent">
+        </header>
+
+        <div class="app-body">
+            <nav class="side leftpanel">
+                @include('menu::menu')
+            </nav>
+            <main class="content rightpanel {{ $section }}">
+                <div class="content-inner primaryContent">
                     @isset($action, $module)
                     @include("$module::$action")
                     @else
@@ -56,12 +50,10 @@
                     <div class="clearfix"></div>
                     @include('global::sections.footer')
                 </div>
+            </main>
+        </div>
 
-            </div>
-
-        </div><!-- rightpanel -->
-
-    </div><!-- mainwrapper -->
+    </div><!-- app -->
 
     @include('global::sections.pageBottom')
     @stack('scripts')

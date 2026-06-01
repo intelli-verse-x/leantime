@@ -40,11 +40,10 @@ return $count;
 
     <div class="clear" style="position:absolute; top:10px; right:35px;">
 
-        {{-- View toggle: List | Kanban | Calendar | Recently Updated --}}
+        {{-- View toggle: List | Kanban | Recently Updated --}}
         <div class="btn-group left" style="margin-right:4px;">
             <button class="btn btn-link btn-round-icon active"
                 title="{{ __('buttons.list_view') }}"
-                style="color:var(--accent1);"
                 aria-label="{{ __('buttons.list_view') }}">
                 <span class="fa-solid fa-list"></span>
             </button>

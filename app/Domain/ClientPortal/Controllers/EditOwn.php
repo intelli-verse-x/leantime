@@ -93,7 +93,8 @@ class EditOwn extends Controller
         $this->tpl->assign('availableFonts', $this->themeCore->getAvailableFonts());
         $this->tpl->assign('availableThemes', $this->themeCore->getAll());
 
-        return $this->tpl->display('clientportal.editOwn');
+        return $this->tpl->display('clientportal.editOwn', 'clientportal');
+
     }
 
     /**

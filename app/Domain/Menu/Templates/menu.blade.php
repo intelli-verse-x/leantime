@@ -14,7 +14,7 @@
 
 @dispatchEvent('beforeMenu')
 
-<ul class="nav nav-tabs nav-stacked">
+<div class="side-nav-inner" style="display:flex; flex-direction:column; gap:4px; margin-top: 16px;">
 
     @dispatchEvent('afterMenuOpen')
 
@@ -23,32 +23,19 @@
         || $menuType == "personal"
         || $menuType == "company")
 
-        <li class="dropdown scrollableMenu">
+        @foreach ($menuStructure as $key => $menuItem)
 
-            <ul style="display:block;">
+            @includeIf("menu::partials.leftnav.".$menuItem['type'], ["menuItem" => $menuItem, "module" => $module, "action" => $action])
 
-                @foreach ($menuStructure as $key => $menuItem)
+        @endforeach
 
-                    @includeIf("menu::partials.leftnav.".$menuItem['type'], ["menuItem" => $menuItem, "module" => $module, "action" => $action])
 
-                @endforeach
-
-                @if ($login::userIsAtLeast(Roles::$manager) && $menuType != 'company' && $menuType != 'personal' && $menuType != 'projecthub')
-                    <li class="fixedMenuPoint {{ $module == $settingsLink['module'] && $action == $settingsLink['action'] ? 'active' : '' }}">
-                        <a  href="{{ BASE_URL }}/{{ $settingsLink['module'] }}/{{ $settingsLink['action'] }}/{{ session("currentProject") }}">
-                            {!! $settingsLink['label']  !!}
-                        </a>
-                    </li>
-                @endif
-            </ul>
-
-        </li>
 
     @endif
 
     @dispatchEvent('beforeMenuClose')
 
-</ul>
+</div>
 @dispatchEvent('afterMenuClose')
 
 

@@ -3,66 +3,41 @@
 
 <head>
     @include('global::sections.header')
-    <style>
-        .leantimeLogo {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-        }
-    </style>
     @stack('styles')
 </head>
 
-<body class="loginpage" style="height:100%;">
+<body class="loginpage">
 
-    <div class="header hidden-gt-sm tw-p-[10px]" style="background:var(--header-gradient)">
-        <a href="{!! BASE_URL !!}" target="_blank">
-            <img src="{{ BASE_URL }}/dist/images/logo.svg" class="tw-h-full " />
-        </a>
-    </div>
+    <div class="tt-auth-page">
 
-    <div class="row" style="min-height:100vh; max-width: 98vw; height: auto;">
-        <div class="col-md-4 hidden-phone regLeft">
+        <div class="tt-auth-card">
 
-            <div class="logo">
-                <a href="{!! BASE_URL !!}" target="_blank">
-                    <img src="{{ BASE_URL }}/dist/images/logo.svg" />
-                </a>
+            {{-- Brand / Logo --}}
+            <div class="tt-auth-brand">
+                @if($logoPath != '' && !str_ends_with($logoPath, "dist/images/logo.svg"))
+                    <a href="{!! BASE_URL !!}">
+                        <img src="{{ $logoPath }}" class="tt-auth-logo" alt="Toba Tech Portal" />
+                    </a>
+                @else
+                    <a href="{!! BASE_URL !!}" class="tt-auth-wordmark">Toba Tech Portal</a>
+                @endif
             </div>
 
-            <div class="welcomeContent">
-                @dispatchFilter('welcomeText', '<h1 class="mainWelcome">' . $language->__("headlines.welcome_back") . '</h1>')
-            </div>
-
-            @dispatchFilter('belowWelcomeText', '')
-
-        </div>
-        <div class="col-md-8 col-sm-12 regRight">
-
-            <div class="regpanel">
-                <div class="regpanelinner">
-
-                    @if($logoPath != '')
-                        <a href="{!! BASE_URL !!}" target="_blank">
-
-                            @if(!str_ends_with($logoPath, "dist/images/logo.svg"))
-                                <img src="{{ $logoPath }}" class="tw-h-full " />
-                            @endif
-                        </a>
-                    @endif
-
-                    @if(isset($action) && isset($module))
-                        @include("$module::$action")
-                    @else
-                        @yield('content')
-                    @endif
-                </div>
+            {{-- Form content --}}
+            <div class="regpanelinner">
+                @if(isset($action) && isset($module))
+                @include("$module::$action")
+                @else
+                @yield('content')
+                @endif
             </div>
 
         </div>
-        <div class="leantimeLogo">
-            <img style="height: 25px;" src="{!! BASE_URL !!}/dist/images/logo-powered-by-leantime.png">
+
+        <div class="tt-auth-footer">
+            <span>© Toba Tech Portal</span>
         </div>
+
     </div>
 
     @include('global::sections.pageBottom')

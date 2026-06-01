@@ -1,1 +1,1 @@
-<li class="separator"></li>
+<div class="nav-sep"></div>

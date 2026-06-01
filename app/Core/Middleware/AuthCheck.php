@@ -87,6 +87,7 @@ class AuthCheck
                 'hx.notifications',
                 'files',
                 'hx.files',
+                'api.users',
             ]);
 
             $isAllowed = false;

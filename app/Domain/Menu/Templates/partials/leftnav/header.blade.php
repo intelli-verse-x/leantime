@@ -1,5 +1,1 @@
-<li class="title">
-    <a href="javascript:void(0);">
-        <strong>{!! __($menuItem['title']) !!}</strong>
-    </a>
-</li>
+<div class="side-role">{!! __($menuItem['title']) !!}</div>

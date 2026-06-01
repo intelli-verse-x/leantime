@@ -32,7 +32,7 @@ class Menu
             30 => ['type' => 'item', 'module' => 'clients',        'title' => 'menu.admin_clients',       'icon' => 'fa fa-fw fa-building',      'tooltip' => 'Client Organisations',    'href' => '/clients/showAll',                  'active' => ['showAll', 'newClient', 'showClient'], 'role' => 'admin'],
             50 => ['type' => 'item', 'module' => 'oneonone',       'title' => 'menu.admin_1on1',          'icon' => 'fa fa-fw fa-handshake',     'tooltip' => '1:1 Sessions',            'href' => '/oneonone/showTeam',                'active' => ['showTeam', 'showSession', 'newSession'], 'role' => 'admin'],
             60 => ['type' => 'item', 'module' => 'weekly-planning', 'title' => 'menu.admin_weekly_plans',  'icon' => 'fa fa-fw fa-calendar-week', 'tooltip' => 'Weekly Planning',         'href' => '/weekly-planning/showTeam',         'active' => ['showTeam', 'showPlan', 'newPlan', 'showBlockers', 'showCommitments'], 'role' => 'admin'],
-            70 => ['type' => 'item', 'module' => 'timesheets',     'title' => 'menu.all_timesheets',      'icon' => 'fa fa-fw fa-business-time', 'tooltip' => 'All Timesheets',          'href' => '/timesheets/showAll',               'active' => ['showAll'],     'role' => 'admin'],
+            70 => ['type' => 'item', 'module' => 'timesheets',     'title' => 'menu.all_timesheets',      'icon' => 'fa fa-fw fa-business-time', 'tooltip' => 'All Timesheets',          'href' => '/timesheets/showAll',               'active' => ['showAll', 'showMy'],     'role' => 'admin'],
             90 => ['type' => 'separator'],
             95 => ['type' => 'item', 'module' => 'setting',        'title' => 'menu.company_settings',    'icon' => 'fa fa-fw fa-cogs',          'tooltip' => 'Company Settings',        'href' => '/setting/editCompanySettings',       'active' => ['editCompanySettings'], 'role' => 'admin'],
         ],
@@ -124,7 +124,7 @@ class Menu
         ],
         'company' => [
             5 => ['type' => 'item', 'module' => 'dashboard',       'role' => 'teamlead', 'title' => 'menu.tlcm_home',          'icon' => 'fa fa-fw fa-house',          'tooltip' => 'menu.tlcm_home_tooltip',          'href' => '/dashboard/tlcmHome',                  'active' => ['tlcmHome']],
-            10 => ['type' => 'item', 'module' => 'timesheets',      'role' => 'teamlead', 'title' => 'menu.all_timesheets',     'icon' => 'fa fa-fw fa-business-time',  'tooltip' => 'menu.all_timesheets_tooltip',     'href' => '/timesheets/showAll',                  'active' => ['showAll']],
+            10 => ['type' => 'item', 'module' => 'timesheets',      'role' => 'teamlead', 'title' => 'menu.all_timesheets',     'icon' => 'fa fa-fw fa-business-time',  'tooltip' => 'menu.all_timesheets_tooltip',     'href' => '/timesheets/showAll',                  'active' => ['showAll', 'showMy']],
             15 => ['type' => 'item', 'module' => 'oneonone',        'role' => 'teamlead', 'title' => 'menu.oneonone_sessions',   'icon' => 'fa fa-fw fa-handshake',      'tooltip' => 'menu.oneonone_sessions_tooltip',  'href' => '/oneonone/show',                       'active' => ['show', 'showTeam', 'showMy', 'showSession', 'newSession']],
             20 => ['type' => 'item', 'module' => 'weekly-planning', 'role' => 'teamlead', 'title' => 'menu.team_weekly_plans',  'icon' => 'fa fa-fw fa-calendar-week',  'tooltip' => 'menu.team_weekly_plans_tooltip',  'href' => '/weekly-planning/showTeam',            'active' => ['showTeam', 'showPlan', 'newPlan']],
             25 => ['type' => 'item', 'module' => 'weekly-planning', 'role' => 'teamlead', 'title' => 'menu.team_blockers',      'icon' => 'fa fa-fw fa-ban',            'tooltip' => 'menu.team_blockers_tooltip',      'href' => '/weekly-planning/showBlockers',        'active' => ['showBlockers']],
@@ -463,6 +463,7 @@ class Menu
             'oneonone.showSession',
             'oneonone.newSession',
             'timesheets.showAll',
+            'timesheets.showMy',
             'projects.showAll',
             'weekly-planning.showTeam',
             'weekly-planning.showPlan',
@@ -474,6 +475,14 @@ class Menu
 
         if ($isAdmin && in_array($currentRoute, $adminRoutes)) {
             $result = 'admin';
+            self::$sectionMenuTypeCache[$cacheKey] = $result;
+
+            return $result;
+        }
+
+        $isTeamLeadOrManager = AuthService::userHasRole([\Leantime\Domain\Auth\Models\Roles::$teamlead, \Leantime\Domain\Auth\Models\Roles::$manager]);
+        if ($isTeamLeadOrManager && $currentRoute === 'timesheets.showMy') {
+            $result = 'company';
             self::$sectionMenuTypeCache[$cacheKey] = $result;
 
             return $result;
