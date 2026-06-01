@@ -1334,3 +1334,51 @@ body.loginpage {
   text-align: right;
   margin-top: 0;
 }
+
+/* ===== WELCOME WIDGET — KPI CARDS ===== */
+.welcome-widget .bigNumberBox,
+.bigNumberBox {
+  background: #1c2333 !important;
+  border: 1px solid #30363d !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  padding: 16px !important;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.welcome-widget .bigNumberBox:hover,
+.bigNumberBox:hover {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15) !important;
+}
+
+.bigNumberBoxInner {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bigNumberBoxNumber {
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  color: #e6edf3 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.5px;
+}
+
+.bigNumberBoxText {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #8b949e !important;
+  line-height: 1.4 !important;
+}
+
+.welcome-widget > div > div[style*="font-size:18px"] {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #e6edf3 !important;
+  padding-bottom: 16px !important;
+  padding-top: 0 !important;
+}
