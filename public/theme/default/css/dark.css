@@ -1297,3 +1297,40 @@ body.loginpage {
   letter-spacing: -0.5px;
   text-decoration: none;
 }
+
+/* ===== 2FA FIELD ===== */
+.tt-auth-card .twofa-heading {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.tt-auth-card .twofa-heading h2 {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: #e6edf3 !important;
+  margin: 0 !important;
+  letter-spacing: -0.3px;
+}
+
+.tt-auth-card .twofa-field {
+  margin-bottom: 18px;
+}
+
+.tt-auth-card .twofa-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #8b949e !important;
+  margin-bottom: 6px;
+}
+
+.tt-auth-card .twofa-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tt-auth-card .twofa-actions .forgotPwContainer {
+  text-align: right;
+  margin-top: 0;
+}
