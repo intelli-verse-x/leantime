@@ -210,7 +210,7 @@ class TimesheetCest
     {
         $I->wantTo('Open ticket and add time');
         $ticketId = $I->grabFromDatabase('zp_tickets', 'id', ['headline' => 'Test Ticket']);
-        $I->amOnPage('/#/tickets/showTicket/' . $ticketId);
+        $I->amOnPage('/#/tickets/showTicket/'.$ticketId);
         $I->waitForElementVisible('a[href="#timesheet"]');
         $I->clickWithRetry('a[href="#timesheet"]');
         $I->waitForElementVisible('#hours');
