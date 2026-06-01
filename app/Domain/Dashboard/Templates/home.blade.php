@@ -17,111 +17,131 @@
 
         @foreach($dashboardGrid as $widget)
 
-            @if($widget->id === 'welcome')
-                <x-widgets::moveableWidget
-                    gs-x="{{ $widget->gridX }}"
-                    gs-y="{{ $widget->gridY }}"
-                    gs-h="{{ $widget->gridHeight }}"
-                    gs-w="{{ $widget->gridWidth }}"
-                    gs-min-w="{{ $widget->gridMinWidth }}"
-                    gs-min-h="{{ $widget->gridMinHeight }}"
-                    isNew="{{ isset($widget->isNew) ? 'true' : 'false' }}"
-                    background="{{ $widget->widgetBackground }}"
-                    noTitle="{{ $widget->noTitle }}"
-                    name="{{ $widget->name }}"
-                    :fixed="true"
-                    alwaysVisible="{{ $widget->alwaysVisible }}"
-                    id="widget_wrapper_{{ $widget->id }}"
-                    gs-no-resize="true"
-                    gs-no-move="true"
-                >
-                    <div hx-get="{{$widget->widgetUrl }}"
-                         hx-trigger="revealed"
-                         id="{{ $widget->id }}"
-                         class="tw-h-full"
-                         hx-swap="#{{ $widget->id }}">
-                        <x-global::loadingText type="{{ $widget->widgetLoadingIndicator }}" count="1" includeHeadline="true" />
-                    </div>
-                </x-widgets::moveableWidget>
-            @else
-                <x-widgets::moveableWidget
-                    gs-x="{{ $widget->gridX }}"
-                    gs-y="{{ $widget->gridY }}"
-                    gs-h="{{ $widget->gridHeight }}"
-                    gs-w="{{ $widget->gridWidth }}"
-                    gs-min-w="{{ $widget->gridMinWidth }}"
-                    gs-min-h="{{ $widget->gridMinHeight }}"
-                    isNew="{{ isset($widget->isNew) ? 'true' : 'false' }}"
-                    background="{{ $widget->widgetBackground }}"
-                    noTitle="{{ $widget->noTitle }}"
-                    name="{{ $widget->name }}"
-                    :fixed="(empty($widget->fixed) ? false : true )"
-                    alwaysVisible="{{ $widget->alwaysVisible }}"
-                    id="widget_wrapper_{{ $widget->id }}"
-                >
-                    <div hx-get="{{$widget->widgetUrl }}"
-                         hx-trigger="revealed"
-                         id="{{ $widget->id }}"
-                         class="tw-h-full"
-                         hx-swap="#{{ $widget->id }}">
-                        <x-global::loadingText type="{{ $widget->widgetLoadingIndicator }}" count="1" includeHeadline="true" />
-                    </div>
-                </x-widgets::moveableWidget>
-            @endif
+        @if($widget->id === 'welcome')
+        <x-widgets::moveableWidget
+            gs-x="{{ $widget->gridX }}"
+            gs-y="{{ $widget->gridY }}"
+            gs-h="{{ $widget->gridHeight }}"
+            gs-w="{{ $widget->gridWidth }}"
+            gs-min-w="{{ $widget->gridMinWidth }}"
+            gs-min-h="{{ $widget->gridMinHeight }}"
+            isNew="{{ isset($widget->isNew) ? 'true' : 'false' }}"
+            background="{{ $widget->widgetBackground }}"
+            noTitle="{{ $widget->noTitle }}"
+            name="{{ $widget->name }}"
+            :fixed="true"
+            alwaysVisible="{{ $widget->alwaysVisible }}"
+            id="widget_wrapper_{{ $widget->id }}"
+            gs-no-resize="true"
+            gs-no-move="true">
+            <div hx-get="{{$widget->widgetUrl }}"
+                hx-trigger="revealed"
+                id="{{ $widget->id }}"
+                class="tw-h-full"
+                hx-swap="#{{ $widget->id }}">
+                <x-global::loadingText type="{{ $widget->widgetLoadingIndicator }}" count="1" includeHeadline="true" />
+            </div>
+        </x-widgets::moveableWidget>
+        @else
+        <x-widgets::moveableWidget
+            gs-x="{{ $widget->gridX }}"
+            gs-y="{{ $widget->gridY }}"
+            gs-h="{{ $widget->gridHeight }}"
+            gs-w="{{ $widget->gridWidth }}"
+            gs-min-w="{{ $widget->gridMinWidth }}"
+            gs-min-h="{{ $widget->gridMinHeight }}"
+            isNew="{{ isset($widget->isNew) ? 'true' : 'false' }}"
+            background="{{ $widget->widgetBackground }}"
+            noTitle="{{ $widget->noTitle }}"
+            name="{{ $widget->name }}"
+            :fixed="(empty($widget->fixed) ? false : true )"
+            alwaysVisible="{{ $widget->alwaysVisible }}"
+            id="widget_wrapper_{{ $widget->id }}">
+            <div hx-get="{{$widget->widgetUrl }}"
+                hx-trigger="revealed"
+                id="{{ $widget->id }}"
+                class="tw-h-full"
+                hx-swap="#{{ $widget->id }}">
+                <x-global::loadingText type="{{ $widget->widgetLoadingIndicator }}" count="1" includeHeadline="true" />
+            </div>
+        </x-widgets::moveableWidget>
+        @endif
 
         @endforeach
     </div>
 </div>
 
 <style>
-/* Style GridStack items to look like Toba Tech Cards */
-.grid-stack-item-content {
-    background: var(--bg-surface) !important;
-    border: 1px solid var(--border-default) !important;
-    border-radius: 12px !important;
-    box-shadow: var(--shadow-sm) !important;
-    transition: box-shadow 0.15s;
-    color: var(--fg-strong);
-}
-.grid-stack-item-content:hover {
-    box-shadow: var(--shadow-md) !important;
-}
-.ui-draggable-dragging .grid-stack-item-content {
-    box-shadow: var(--shadow-lg) !important;
-}
-.widget-header {
-    border-bottom: 1px solid var(--border-default) !important;
-    padding: 12px 16px !important;
-}
-.widget-header h3 {
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    color: var(--fg-strong) !important;
-}
+    /* Style GridStack items to look like Toba Tech Cards */
+    .grid-stack-item-content {
+        background: var(--bg-surface) !important;
+        border: 1px solid var(--border-default) !important;
+        border-radius: 12px !important;
+        box-shadow: var(--shadow-sm) !important;
+        transition: box-shadow 0.15s;
+        color: var(--fg-strong);
+    }
 
-/* Make welcome/greeting widget card container transparent to let KPI cards float independently */
-.grid-stack-item:has(.welcome-widget) .grid-stack-item-content,
-.grid-stack-item:has(.welcome-widget) .grid-stack-item-content:hover,
-[id^="widget_wrapper_"]:has(.welcome-widget) .grid-stack-item-content,
-[id^="widget_wrapper_"]:has(.welcome-widget) .grid-stack-item-content:hover {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-}
+    .grid-stack-item-content:hover {
+        box-shadow: var(--shadow-md) !important;
+    }
+
+    .ui-draggable-dragging .grid-stack-item-content {
+        box-shadow: var(--shadow-lg) !important;
+    }
+
+    .widget-header {
+        border-bottom: 1px solid var(--border-default) !important;
+        padding: 12px 16px !important;
+    }
+
+    .widget-header h3 {
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        color: var(--fg-strong) !important;
+    }
+
+    /* Make welcome/greeting widget card container transparent to let KPI cards float independently */
+    .grid-stack-item:has(.welcome-widget) .grid-stack-item-content,
+    .grid-stack-item:has(.welcome-widget) .grid-stack-item-content:hover,
+    [id^="widget_wrapper_"]:has(.welcome-widget) .grid-stack-item-content,
+    [id^="widget_wrapper_"]:has(.welcome-widget) .grid-stack-item-content:hover {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
 </style>
 
 <script>
+    @dispatchEvent('scripts.afterOpen')
 
-@dispatchEvent('scripts.afterOpen')
+    jQuery(document).ready(function() {
 
-jQuery(document).ready(function() {
+        leantime.widgetController.initGrid();
 
-    leantime.widgetController.initGrid();
+        // Ensure welcome widget is tall enough to display KPI cards properly.
+        // Existing users may have the old h=3 (90px) saved — upgrade them to h=5 (150px).
+        setTimeout(function() {
+            var welcomeEl = document.getElementById('widget_wrapper_welcome');
+            if (welcomeEl) {
+                var currentH = parseInt(welcomeEl.getAttribute('gs-h') || '3', 10);
+                if (currentH < 5) {
+                    var gs = document.querySelector('.grid-stack') && document.querySelector('.grid-stack').gridstack;
+                    if (gs) {
+                        gs.update(welcomeEl, {
+                            h: 5,
+                            minH: 4
+                        });
+                        leantime.widgetController.saveGrid();
+                    }
+                }
+            }
+        }, 300);
 
-    @php(session(["usersettings.modals.homeDashboardTour" => 1]))
+        @php(session(["usersettings.modals.homeDashboardTour" => 1]))
 
-});
+    });
 </script>
 
 @endsection
