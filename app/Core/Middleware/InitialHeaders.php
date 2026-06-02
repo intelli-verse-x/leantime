@@ -45,7 +45,7 @@ class InitialHeaders
                 .' calendly.com'                          // calendly
                 .' codepen.io'                            // codepen
                 .' *.codesandbox.io',                     // codesandbox
-                "frame-ancestors 'self' *.google.com *.microsoft.com *.live.com https://admin.intelli-verse-x.ai",
+            "frame-ancestors 'self' *.google.com *.microsoft.com *.live.com https://admin.intelli-verse-x.ai",
         ];
         $cspParts = self::dispatchFilter('cspParts', $cspParts);
         $csp = implode(';', $cspParts);
