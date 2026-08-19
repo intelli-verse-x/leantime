@@ -7,7 +7,6 @@ Home_text.txt
 Projects_text.txt
 .settings
 .DS_Store
-.vscode
 *.swp
 SECURITY-REVIEW.md
 Toba Tech Portal Figma Design
@@ -132,7 +131,6 @@ config/.env
 .codebuddy
 
 #vscode
-.vscode
 .idea/codebuddy.xml
 
 **/.claude/settings.local.json
