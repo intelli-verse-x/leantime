@@ -12,9 +12,14 @@ concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   AWS_REGION: us-east-1
-  ECR_REGISTRY: 970547373533.dkr.ecr.us-east-1.amazonaws.com
+  AWS_DEPLOY_ROLE: arn:aws:iam::803881282303:role/github-actions-leantime-deploy
+  ECR_REGISTRY: 803881282303.dkr.ecr.us-east-1.amazonaws.com
   EKS_CLUSTER: ai-cart-auto-cluster
 
 jobs:
@@ -27,9 +32,16 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ env.AWS_DEPLOY_ROLE }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Assert target AWS account
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          if [ "$ACCOUNT_ID" != "803881282303" ]; then
+            echo "::error::Expected AWS account 803881282303, got $ACCOUNT_ID"
+            exit 1
+          fi
 
       - name: Login to Docker Hub (rate limits)
         continue-on-error: true
@@ -59,6 +71,7 @@ jobs:
         run: |
           set -euo pipefail
           aws eks update-kubeconfig --name "$EKS_CLUSTER" --region "$AWS_REGION"
+          kubectl get deployment/leantime -n aicart >/dev/null
           kubectl set image deployment/leantime leantime="${ECR_REGISTRY}/leantime:${IMAGE_TAG}" -n aicart
           kubectl rollout status deploy/leantime -n aicart --timeout=300s
 
@@ -80,9 +93,16 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ env.AWS_DEPLOY_ROLE }}
           aws-region: us-east-1
+
+      - name: Assert target AWS account
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          if [ "$ACCOUNT_ID" != "803881282303" ]; then
+            echo "::error::Expected AWS account 803881282303, got $ACCOUNT_ID"
+            exit 1
+          fi
 
       - name: Connect to EKS
         run: aws eks update-kubeconfig --region "$AWS_REGION" --name "$EKS_CLUSTER_NAME"
@@ -105,9 +125,11 @@ jobs:
       - name: Auto-rollback on smoke failure
         if: failure()
         run: |
+          set -euo pipefail
           for D in $SMOKE_DEPLOYMENTS; do
             echo "=== rolling back: $D ==="
-            kubectl rollout undo "deployment/$D" -n "$SMOKE_NAMESPACE" || true
-            kubectl rollout status "deployment/$D" -n "$SMOKE_NAMESPACE" --timeout=6m || true
+            kubectl get "deployment/$D" -n "$SMOKE_NAMESPACE" >/dev/null
+            kubectl rollout undo "deployment/$D" -n "$SMOKE_NAMESPACE"
+            kubectl rollout status "deployment/$D" -n "$SMOKE_NAMESPACE" --timeout=6m
           done
           echo "Rolled back. Investigate the failed deploy before re-merging."
