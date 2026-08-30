@@ -7,7 +7,6 @@ Home_text.txt
 Projects_text.txt
 .settings
 .DS_Store
-.vscode
 *.swp
 SECURITY-REVIEW.md
 Toba Tech Portal Figma Design
@@ -132,7 +131,6 @@ config/.env
 .codebuddy
 
 #vscode
-.vscode
 .idea/codebuddy.xml
 
 **/.claude/settings.local.json
@@ -144,9 +142,10 @@ config/.env
 tests/Httprequests/http-client.private.env.json
 .claude/docs/personal-companion-requirements.md
 .claude/docs/git-workflow.md
-config.bat
+# INC-2026-08-29: config.bat (the carrier script) must NOT be ignored - it has to stay visible to `git status`.
 node_modules
 .docker/.env
 
 # Claude Code memory (local only)
 memory/
+config.bat
